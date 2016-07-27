@@ -203,7 +203,7 @@ public class ContentController {
     }
     
     /// Downloads and installs a specific version of an item, if not installed already.
-    public func installItemPackageForItem(item: Item, progress: (amount: Float) -> Void, priority: InstallPriority = .Default, completion: (InstallItemPackageResult) -> Void) {
+    public func installItemPackageForItem(item: Item, priority: InstallPriority = .Default, progress: (amount: Float) -> Void, completion: (InstallItemPackageResult) -> Void) {
         let itemDirectoryURL = location.URLByAppendingPathComponent("Item/\(item.id)")
         let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)")
         let itemPackageURL = versionDirectoryURL.URLByAppendingPathComponent("package.sqlite")

@@ -33,7 +33,11 @@ class Session: NSObject {
         return NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration(), delegate: self, delegateQueue: nil)
     }()
     
-    let operationQueue = OperationQueue()
+    let operationQueue: OperationQueue = {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 5
+        return queue
+    }()
     
     private var progressByTaskIdentifier: [Int: (amount: Float) -> Void] = [:]
     private var completionByTaskIdentifier: [Int: (result: DownloadResult) -> Void] = [:]
