@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		110BEADB1D4FFFE2007C7D68 /* ItemExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110BEADA1D4FFFE2007C7D68 /* ItemExtractor.swift */; };
 		1112ADFD1D132E11000E71C3 /* ItemPackage+NavCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1112ADF71D132E11000E71C3 /* ItemPackage+NavCollection.swift */; };
 		1112ADFE1D132E11000E71C3 /* ItemPackage+NavCollectionIndexEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1112ADF81D132E11000E71C3 /* ItemPackage+NavCollectionIndexEntry.swift */; };
 		1112ADFF1D132E11000E71C3 /* ItemPackage+ParagraphMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1112ADF91D132E11000E71C3 /* ItemPackage+ParagraphMetadata.swift */; };
@@ -93,6 +94,7 @@
 
 /* Begin PBXFileReference section */
 		06F29B9CB36328EFC82EC698 /* Pods-LDSContent-LDSContentTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LDSContent-LDSContentTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-LDSContent-LDSContentTests/Pods-LDSContent-LDSContentTests.debug.xcconfig"; sourceTree = "<group>"; };
+		110BEADA1D4FFFE2007C7D68 /* ItemExtractor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemExtractor.swift; sourceTree = "<group>"; };
 		1112ADF71D132E11000E71C3 /* ItemPackage+NavCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ItemPackage+NavCollection.swift"; sourceTree = "<group>"; };
 		1112ADF81D132E11000E71C3 /* ItemPackage+NavCollectionIndexEntry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ItemPackage+NavCollectionIndexEntry.swift"; sourceTree = "<group>"; };
 		1112ADF91D132E11000E71C3 /* ItemPackage+ParagraphMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ItemPackage+ParagraphMetadata.swift"; sourceTree = "<group>"; };
@@ -226,6 +228,7 @@
 				D9B32A371C701EEA00A0304D /* DownloadItemPackageOperation.swift */,
 				D9B32A351C701E9E00A0304D /* DownloadItemPackageResult.swift */,
 				11268FAE1D247FBD00710ADF /* UpdateAndMergeCatalogResult.swift */,
+				110BEADA1D4FFFE2007C7D68 /* ItemExtractor.swift */,
 			);
 			name = Install;
 			sourceTree = "<group>";
@@ -578,6 +581,7 @@
 				D9B32A3E1C72352800A0304D /* SubitemContentRange.swift in Sources */,
 				D9C012801C72B8700025D78A /* NavCollectionIndexEntry.swift in Sources */,
 				D9C0127A1C7297840025D78A /* RelatedContentItem.swift in Sources */,
+				110BEADB1D4FFFE2007C7D68 /* ItemExtractor.swift in Sources */,
 				1112ADFE1D132E11000E71C3 /* ItemPackage+NavCollectionIndexEntry.swift in Sources */,
 				D9B32A401C72369200A0304D /* NSRange.swift in Sources */,
 				D9B32A361C701E9E00A0304D /* DownloadItemPackageResult.swift in Sources */,

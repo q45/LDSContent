@@ -202,6 +202,36 @@ public class ContentController {
         return nil
     }
     
+    /// Directly install item package located at `path`
+    public func installItemPackage(atPath path: String, forItem item: Item) throws {
+        let tempDirectoryURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
+        defer {
+            do {
+                try NSFileManager.defaultManager().removeItemAtURL(tempDirectoryURL)
+            } catch {}
+        }
+        
+        try ItemExtractor.extractItemPackage(location: NSURL(fileURLWithPath: path), destination: tempDirectoryURL)
+        let itemDirectoryURL = location.URLByAppendingPathComponent("Item/\(item.id)")
+        let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)")
+        let itemPackageURL = versionDirectoryURL.URLByAppendingPathComponent("package.sqlite")
+        
+        do {
+            try NSFileManager.defaultManager().createDirectoryAtURL(itemDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+        } catch {}
+        do {
+            try NSFileManager.defaultManager().moveItemAtURL(tempDirectoryURL, toURL: versionDirectoryURL)
+        } catch {}
+        
+        let itemPackage = try ItemPackage(url: itemPackageURL)
+        if itemPackage.schemaVersion == Catalog.SchemaVersion && itemPackage.itemPackageVersion == item.version {
+            try self.contentInventory.setSchemaVersion(Catalog.SchemaVersion, itemPackageVersion: item.version, forItemWithID: item.id)
+        } else {
+            try NSFileManager.defaultManager().removeItemAtURL(versionDirectoryURL)
+            throw Error.errorWithCode(.Unknown, failureReason: "Item package is not readable.")
+        }
+    }
+    
     /// Downloads and installs a specific version of an item, if not installed already.
     public func installItemPackageForItem(item: Item, priority: InstallPriority = .Default, progress: (amount: Float) -> Void, completion: (InstallItemPackageResult) -> Void) {
         let itemDirectoryURL = location.URLByAppendingPathComponent("Item/\(item.id)")

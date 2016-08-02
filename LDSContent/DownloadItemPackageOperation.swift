@@ -22,7 +22,6 @@
 
 import Foundation
 import Operations
-import SSZipArchive
 
 class DownloadItemPackageOperation: Operation {
     let session: Session
@@ -57,13 +56,11 @@ class DownloadItemPackageOperation: Operation {
         downloadItemPackage(externalID: externalID, version: version, progress: progress) { result in
             switch result {
             case let .Success(location):
-                self.extractItemPackage(location: location) { result in
-                    switch result {
-                    case .Success:
-                        self.finish()
-                    case let .Error(error):
-                        self.finish(error)
-                    }
+                do {
+                    try ItemExtractor.extractItemPackage(location: location, destination: self.tempDirectoryURL)
+                    self.finish()
+                } catch {
+                    self.finish(error)
                 }
             case let .Error(error):
                 self.finish(error)
@@ -96,50 +93,6 @@ class DownloadItemPackageOperation: Operation {
             }
         }, forTaskIdentifier: task.taskIdentifier)
         task.resume()
-    }
-    
-    enum ExtractItemPackageResult {
-        case Success
-        case Error(error: NSError)
-    }
-    
-    func extractItemPackage(location location: NSURL, completion: (ExtractItemPackageResult) -> Void) {
-        guard let sourcePath = location.path else {
-            completion(.Error(error: Error.errorWithCode(.Unknown, failureReason: "Failed to get compressed item package path")))
-            return
-        }
-        
-        do {
-            try NSFileManager.defaultManager().createDirectoryAtURL(tempDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-        } catch let error as NSError {
-            completion(.Error(error: error))
-            return
-        }
-        defer {
-            do {
-                try NSFileManager.defaultManager().removeItemAtURL(tempDirectoryURL)
-            } catch {}
-        }
-        
-        guard let destinationPath = tempDirectoryURL.path else {
-            completion(.Error(error: Error.errorWithCode(.Unknown, failureReason: "Failed to get temp directory path")))
-            return
-        }
-        
-        guard SSZipArchive.unzipFileAtPath(sourcePath, toDestination: destinationPath) else {
-            completion(.Error(error: Error.errorWithCode(.Unknown, failureReason: "Failed to decompress item package")))
-            return
-        }
-        
-        let uncompressedPackageURL = tempDirectoryURL.URLByAppendingPathComponent("package.sqlite")
-        
-        var error: NSError?
-        if !uncompressedPackageURL.checkResourceIsReachableAndReturnError(&error), let error = error {
-            completion(.Error(error: error))
-            return
-        }
-        
-        completion(.Success)
     }
     
 }
