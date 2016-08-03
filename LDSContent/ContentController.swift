@@ -36,10 +36,12 @@ public class ContentController {
     
     let contentInventory: ContentInventory
     let session = Session()
+    var progressByItemID = [Int64: Float]()
     
     public let catalogUpdateObservers = ObserverSet<Catalog>()
     public let itemPackageInstallObservers = ObserverSet<Item>()
     public let itemPackageUninstallObservers = ObserverSet<Item>()
+    public let itemPackageInstallProgressObservers = ObserverSet<(item: Item, progress: Float)>()
     
     /// Constructs a controller for content at `location`.
     public init(location: NSURL) throws {
@@ -233,7 +235,7 @@ public class ContentController {
     }
     
     /// Downloads and installs a specific version of an item, if not installed already.
-    public func installItemPackageForItem(item: Item, priority: InstallPriority = .Default, progress: (amount: Float) -> Void, completion: (InstallItemPackageResult) -> Void) {
+    public func installItemPackageForItem(item: Item, priority: InstallPriority = .Default, progress: ((amount: Float) -> Void)? = nil, completion: ((InstallItemPackageResult) -> Void)? = nil) {
         let itemDirectoryURL = location.URLByAppendingPathComponent("Item/\(item.id)")
         let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)")
         let itemPackageURL = versionDirectoryURL.URLByAppendingPathComponent("package.sqlite")
@@ -245,19 +247,28 @@ public class ContentController {
                 do {
                     try contentInventory.setErrored(false, itemID: item.id)
                     try contentInventory.removeFromInstallQueue(itemID: item.id)
-                } catch { }
+                } catch {}
                 
-                completion(.AlreadyInstalled(itemPackage: itemPackage))
+                completion?(.AlreadyInstalled(itemPackage: itemPackage))
             } catch let error as NSError {
-                completion(.Error(errors: [error]))
+                completion?(.Error(errors: [error]))
             }
         } else {
             do {
                 try contentInventory.addToInstallQueue(itemID: item.id)
                 try contentInventory.setErrored(false, itemID: item.id)
-            } catch { }
+            } catch {}
             
-            session.downloadItemPackage(externalID: item.externalID, version: item.version, progress: progress, priority: priority) { result in
+            var previousAmount: Float = 0
+            session.downloadItemPackage(externalID: item.externalID, version: item.version, priority: priority, progress: { amount in
+                progress?(amount: amount)
+                guard previousAmount == 0 || amount - previousAmount > 0.05 else { return }
+                
+                self.itemPackageInstallProgressObservers.notify((item: item, progress: amount))
+                self.progressByItemID[item.id] = amount
+                previousAmount = amount
+            }) { result in
+                self.progressByItemID[item.id] = nil
                 switch result {
                 case let .Success(location):
                     do {
@@ -274,24 +285,24 @@ public class ContentController {
                         
                         do {
                             try self.contentInventory.removeFromInstallQueue(itemID: item.id)
-                        } catch { }
+                        } catch {}
                         
                         self.itemPackageInstallObservers.notify(item)
                         
-                        completion(.Success(itemPackage: itemPackage))
+                        completion?(.Success(itemPackage: itemPackage))
                     } catch let error as NSError {
                         do {
                             try self.contentInventory.setErrored(true, itemID: item.id)
                             try self.contentInventory.removeFromInstallQueue(itemID: item.id)
-                        } catch { }
-                        completion(.Error(errors: [error]))
+                        } catch {}
+                        completion?(.Error(errors: [error]))
                     }
                 case let .Error(errors):
                     do {
                         try self.contentInventory.setErrored(true, itemID: item.id)
                         try self.contentInventory.removeFromInstallQueue(itemID: item.id)
-                    } catch { }
-                    completion(.Error(errors: errors))
+                    } catch {}
+                    completion?(.Error(errors: errors))
                 }
             }
         }
@@ -310,6 +321,7 @@ public class ContentController {
             self.itemPackageUninstallObservers.notify(item)
         }
     }
+    
     public func isItemWithIDInstalled(itemID: Int64) -> Bool {
         return contentInventory.isItemWithIDInstalled(itemID: itemID)
     }
@@ -328,6 +340,10 @@ public class ContentController {
     
     public func installedVersionOfItemWithID(itemID: Int64) -> (schemaVersion: Int, itemPackageVersion: Int)? {
         return contentInventory.installedVersionOfItemWithID(itemID)
+    }
+    
+    public func itemPackageInstallProgressForItemWithID(itemID: Int64) -> Float? {
+        return progressByItemID[itemID]
     }
     
     public func isUpdatingOrInstalling() -> Bool {
