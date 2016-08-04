@@ -16,6 +16,7 @@
 		1112AE021D132E11000E71C3 /* ItemPackage+Subitem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1112ADFC1D132E11000E71C3 /* ItemPackage+Subitem.swift */; };
 		1112AE041D132E2F000E71C3 /* Catalog+SubitemMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1112AE031D132E2F000E71C3 /* Catalog+SubitemMetadata.swift */; };
 		11268FAF1D247FBD00710ADF /* UpdateAndMergeCatalogResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11268FAE1D247FBD00710ADF /* UpdateAndMergeCatalogResult.swift */; };
+		115A131B1D53C3E700A2CFB6 /* ContentControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115A131A1D53C3E700A2CFB6 /* ContentControllerTests.swift */; };
 		11F3A9421D244A10007096EB /* CatalogMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F3A9411D244A10007096EB /* CatalogMetadata.swift */; };
 		8095D4416FCE1039690BF529 /* Pods_LDSContent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2E1D458ED483E286A37FAE91 /* Pods_LDSContent.framework */; };
 		D43404201CCE97AC004D3B55 /* Author.swift in Sources */ = {isa = PBXBuildFile; fileRef = D434041B1CCE97AC004D3B55 /* Author.swift */; };
@@ -103,6 +104,7 @@
 		1112ADFC1D132E11000E71C3 /* ItemPackage+Subitem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ItemPackage+Subitem.swift"; sourceTree = "<group>"; };
 		1112AE031D132E2F000E71C3 /* Catalog+SubitemMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Catalog+SubitemMetadata.swift"; sourceTree = "<group>"; };
 		11268FAE1D247FBD00710ADF /* UpdateAndMergeCatalogResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdateAndMergeCatalogResult.swift; sourceTree = "<group>"; };
+		115A131A1D53C3E700A2CFB6 /* ContentControllerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentControllerTests.swift; sourceTree = "<group>"; };
 		11F3A9411D244A10007096EB /* CatalogMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CatalogMetadata.swift; sourceTree = "<group>"; };
 		2E1D458ED483E286A37FAE91 /* Pods_LDSContent.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LDSContent.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E12DE9E21E0A3791DB7EFA5 /* Pods_LDSContent_LDSContentTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LDSContent_LDSContentTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -334,6 +336,7 @@
 		D9D3AEF61C6A9A2400E2681A /* LDSContentTests */ = {
 			isa = PBXGroup;
 			children = (
+				115A131A1D53C3E700A2CFB6 /* ContentControllerTests.swift */,
 				D93CAA2D1C6BA0CC00C21A46 /* DownloadCatalogTests.swift */,
 				D93CAA331C6BB52C00C21A46 /* CatalogTests.swift */,
 				D90DF2651C6D160C0033A89C /* MutableCatalogTests.swift */,
@@ -641,6 +644,7 @@
 			files = (
 				D90DF2661C6D160C0033A89C /* MutableCatalogTests.swift in Sources */,
 				D95B2BC71C6D504B00D7230D /* XCTAsserts.swift in Sources */,
+				115A131B1D53C3E700A2CFB6 /* ContentControllerTests.swift in Sources */,
 				D93CAA341C6BB52C00C21A46 /* CatalogTests.swift in Sources */,
 				D9B32A341C701E3200A0304D /* ItemPackageTests.swift in Sources */,
 				D9C012901C7377460025D78A /* MutableItemPackageTests.swift in Sources */,

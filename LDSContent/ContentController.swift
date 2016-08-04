@@ -90,7 +90,11 @@ public class ContentController {
             try mergeCatalogs()
         }
     }
-    
+}
+
+// MARK: - Catalog
+
+extension ContentController {
     /// Checks the server for the latest catalog version and installs it if newer than the currently
     /// installed catalog (or if there is no catalog installed).
     public func updateCatalog(secureCatalogs secureCatalogs: [(name: String, baseURL: NSURL)]? = nil, progress: (amount: Float) -> Void = { _ in }, completion: (UpdateAndMergeCatalogResult) -> Void) {
@@ -194,7 +198,11 @@ public class ContentController {
     private func locationForCatalog(name: String, version: Int) -> NSURL {
         return location.URLByAppendingPathComponent("Catalogs/\(name)/\(version)/Catalog.sqlite")
     }
-    
+}
+
+// MARK: - Item Package
+
+extension ContentController {
     /// The currently installed item package for the designated item.
     public func itemPackageForItemWithID(itemID: Int64) -> ItemPackage? {
         if let installedVersion = contentInventory.installedVersionOfItemWithID(itemID) {
@@ -240,19 +248,29 @@ public class ContentController {
         let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)")
         let itemPackageURL = versionDirectoryURL.URLByAppendingPathComponent("package.sqlite")
         
-        if let installedVersion = contentInventory.installedVersionOfItemWithID(item.id) where installedVersion.schemaVersion == Catalog.SchemaVersion && installedVersion.itemPackageVersion == item.version {
-            do {
-                let itemPackage = try ItemPackage(url: itemPackageURL)
-                
-                do {
-                    try contentInventory.setErrored(false, itemID: item.id)
-                    try contentInventory.removeFromInstallQueue(itemID: item.id)
-                } catch {}
-                
-                completion?(.AlreadyInstalled(itemPackage: itemPackage))
-            } catch let error as NSError {
-                completion?(.Error(errors: [error]))
+        func isAlreadyInstalled() -> Bool {
+            if let installedVersion = contentInventory.installedVersionOfItemWithID(item.id) where installedVersion.schemaVersion == Catalog.SchemaVersion && installedVersion.itemPackageVersion >= item.version {
+                return true
             }
+            
+            return false
+        }
+        
+        func completeAlreadyInstalled() {
+            do {
+                try contentInventory.setErrored(false, itemID: item.id)
+                try contentInventory.removeFromInstallQueue(itemID: item.id)
+            } catch {}
+            
+            if let package = itemPackageForItemWithID(item.id) {
+                completion?(.AlreadyInstalled(itemPackage: package))
+            } else {
+                completion?(.Error(errors: [Error.errorWithCode(.Unknown, failureReason: "Failed to get existing package")]))
+            }
+        }
+        
+        if isAlreadyInstalled() {
+            completeAlreadyInstalled()
         } else {
             do {
                 try contentInventory.addToInstallQueue(itemID: item.id)
@@ -271,6 +289,11 @@ public class ContentController {
                 self.progressByItemID[item.id] = nil
                 switch result {
                 case let .Success(location):
+                    guard !isAlreadyInstalled() else {
+                        completeAlreadyInstalled()
+                        break
+                        
+                    }
                     do {
                         try NSFileManager.defaultManager().createDirectoryAtURL(itemDirectoryURL, withIntermediateDirectories: true, attributes: nil)
                     } catch {}
