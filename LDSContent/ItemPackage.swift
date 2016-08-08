@@ -32,9 +32,9 @@ public class ItemPackage {
     
     public init(url: NSURL, readonly: Bool = true) throws {
         do {
-            db = try Connection(url.path ?? "", readonly: readonly)
+            db = try Connection(url.URLByAppendingPathComponent("package.sqlite").path ?? "", readonly: readonly)
             db.busyTimeout = 5
-            self.url = url.URLByDeletingLastPathComponent ?? url
+            self.url = url
         } catch {
             throw error
         }

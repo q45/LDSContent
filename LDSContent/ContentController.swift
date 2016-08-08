@@ -90,6 +90,15 @@ public class ContentController {
             try mergeCatalogs()
         }
     }
+    
+    private func deleteSiblings(ofURL url: NSURL) {
+        guard let parentDirectory = url.URLByDeletingLastPathComponent, items = try? NSFileManager.defaultManager().contentsOfDirectoryAtURL(parentDirectory, includingPropertiesForKeys: nil, options: [.SkipsHiddenFiles]) else { return }
+        for siblingURL in items where siblingURL != url {
+            do {
+                try NSFileManager.defaultManager().removeItemAtURL(siblingURL)
+            } catch {}
+        }
+    }
 }
 
 // MARK: - Catalog
@@ -103,6 +112,7 @@ extension ContentController {
             let catalogsToDelete = contentInventory.installedCatalogs().filter { installedCatalog in !installedCatalog.isDefault() && !secureCatalogs.contains({ secureCatalog in secureCatalog.name == installedCatalog.name })}.map { $0.name }
             do {
                 try self.contentInventory.deleteCatalogsNamed(catalogsToDelete)
+                try catalogsToDelete.forEach { try NSFileManager.defaultManager().removeItemAtURL(location.URLByAppendingPathComponent("Catalogs/\($0)")) }
             } catch {
                 NSLog("Couldn't delete catalogs \(catalogsToDelete): \(error)")
             }
@@ -132,6 +142,8 @@ extension ContentController {
                     } catch {
                         completion(.Error(errors: [error]))
                     }
+                    
+                    self.cleanupOldCatalogs()
                 }
                 
                 // If default catalog update succeeds, attempt to update secure catalogs (if any)
@@ -198,6 +210,15 @@ extension ContentController {
     private func locationForCatalog(name: String, version: Int) -> NSURL {
         return location.URLByAppendingPathComponent("Catalogs/\(name)/\(version)/Catalog.sqlite")
     }
+    
+    private func cleanupOldCatalogs() {
+        var currentCatalogVersionURLs = contentInventory.installedCatalogs().flatMap { locationForCatalog($0.name, version: $0.version).URLByDeletingLastPathComponent }
+        if let mergedCatalogPath = mergedCatalogPath, url = NSURL(fileURLWithPath: mergedCatalogPath).URLByDeletingLastPathComponent {
+            currentCatalogVersionURLs.append(url)
+        }
+        
+        currentCatalogVersionURLs.forEach(deleteSiblings)
+    }
 }
 
 // MARK: - Item Package
@@ -206,7 +227,7 @@ extension ContentController {
     /// The currently installed item package for the designated item.
     public func itemPackageForItemWithID(itemID: Int64) -> ItemPackage? {
         if let installedVersion = contentInventory.installedVersionOfItemWithID(itemID) {
-            return try? ItemPackage(url: location.URLByAppendingPathComponent("Item/\(itemID)/\(installedVersion.schemaVersion).\(installedVersion.itemPackageVersion)/package.sqlite"))
+            return try? ItemPackage(url: location.URLByAppendingPathComponent("Item/\(itemID)/\(installedVersion.schemaVersion).\(installedVersion.itemPackageVersion)"))
         }
         
         return nil
@@ -224,7 +245,6 @@ extension ContentController {
         try ItemExtractor.extractItemPackage(location: NSURL(fileURLWithPath: path), destination: tempDirectoryURL)
         let itemDirectoryURL = location.URLByAppendingPathComponent("Item/\(item.id)")
         let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)")
-        let itemPackageURL = versionDirectoryURL.URLByAppendingPathComponent("package.sqlite")
         
         do {
             try NSFileManager.defaultManager().createDirectoryAtURL(itemDirectoryURL, withIntermediateDirectories: true, attributes: nil)
@@ -233,7 +253,7 @@ extension ContentController {
             try NSFileManager.defaultManager().moveItemAtURL(tempDirectoryURL, toURL: versionDirectoryURL)
         } catch {}
         
-        let itemPackage = try ItemPackage(url: itemPackageURL)
+        let itemPackage = try ItemPackage(url: versionDirectoryURL)
         if itemPackage.schemaVersion == Catalog.SchemaVersion && itemPackage.itemPackageVersion == item.version {
             try self.contentInventory.setSchemaVersion(Catalog.SchemaVersion, itemPackageVersion: item.version, forItemWithID: item.id)
         } else {
@@ -245,8 +265,7 @@ extension ContentController {
     /// Downloads and installs a specific version of an item, if not installed already.
     public func installItemPackageForItem(item: Item, priority: InstallPriority = .Default, progress: ((amount: Float) -> Void)? = nil, completion: ((InstallItemPackageResult) -> Void)? = nil) {
         let itemDirectoryURL = location.URLByAppendingPathComponent("Item/\(item.id)")
-        let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)")
-        let itemPackageURL = versionDirectoryURL.URLByAppendingPathComponent("package.sqlite")
+        let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)/")
         
         func isAlreadyInstalled() -> Bool {
             if let installedVersion = contentInventory.installedVersionOfItemWithID(item.id) where installedVersion.schemaVersion == Catalog.SchemaVersion && installedVersion.itemPackageVersion >= item.version {
@@ -301,8 +320,10 @@ extension ContentController {
                         try NSFileManager.defaultManager().moveItemAtURL(location, toURL: versionDirectoryURL)
                     } catch {}
                     
+                    self.deleteSiblings(ofURL: versionDirectoryURL)
+                    
                     do {
-                        let itemPackage = try ItemPackage(url: itemPackageURL)
+                        let itemPackage = try ItemPackage(url: versionDirectoryURL)
                         
                         try self.contentInventory.setSchemaVersion(Catalog.SchemaVersion, itemPackageVersion: item.version, forItemWithID: item.id)
                         

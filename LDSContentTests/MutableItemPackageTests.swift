@@ -125,12 +125,13 @@ class MutableItemPacakgeTests: XCTestCase {
         XCTAssertNoThrow(try itemPackage.addParagraphMetadata(paragraphID: "p1", paragraphAID: "1", subitemID: 1, verseNumber: "1", range: NSRange(location: 1, length: 2)))
     }
     
-    let tempPackageURL = NSURL.fileURLWithPath(NSTemporaryDirectory()).URLByAppendingPathComponent("temp.sqlite")
+    let tempPackageURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
     
     override func setUp() {
         super.setUp()
         
         do {
+            try NSFileManager.defaultManager().createDirectoryAtURL(tempPackageURL, withIntermediateDirectories: true, attributes: nil)
             itemPackage = try MutableItemPackage(url: tempPackageURL, iso639_1Code: "en", iso639_3Code: "eng")
         } catch {
             itemPackage = nil
