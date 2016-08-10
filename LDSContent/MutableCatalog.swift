@@ -121,7 +121,6 @@ extension MutableCatalog {
             ItemTable.itemCoverRenditions <- String(item.itemCoverRenditions),
             ItemTable.itemCategoryID <- item.itemCategoryID,
             ItemTable.version <- item.version,
-            ItemTable.latestVersion <- item.version,
             ItemTable.obsolete <- item.obsolete
         ))
     }
@@ -191,8 +190,9 @@ extension MutableCatalog {
         ))
     }
     
-    public func addSubitemID(subitemID: Int64, itemID: Int64, docID: String, docVersion: Int) throws {
+    public func addSubitemMetadata(id id: Int64, subitemID: Int64, itemID: Int64, docID: String, docVersion: Int) throws {
         try db.run(SubitemMetadataTable.table.insert(
+            SubitemMetadataTable.id <- id,
             SubitemMetadataTable.subitemID <- subitemID,
             SubitemMetadataTable.itemID <- itemID,
             SubitemMetadataTable.docID <- docID,

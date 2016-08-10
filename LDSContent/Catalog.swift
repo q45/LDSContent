@@ -188,7 +188,6 @@ extension Catalog {
         static let itemCoverRenditions = Expression<String?>("item_cover_renditions")
         static let itemCategoryID = Expression<Int64>("item_category_id")
         static let version = Expression<Int>("version")
-        static let latestVersion = Expression<Int>("latest_version")
         static let obsolete = Expression<Bool>("is_obsolete")
         
         static func fromRow(row: Row) -> Item {

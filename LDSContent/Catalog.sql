@@ -84,7 +84,6 @@ CREATE TABLE item (
     item_cover_renditions TEXT,
     item_category_id INTEGER NOT NULL,
     version INTEGER NOT NULL,
-    latest_version INTEGER NOT NULL,
     is_obsolete INTEGER NOT NULL,
     UNIQUE(external_id)
     );
@@ -122,7 +121,7 @@ CREATE TABLE stopword (
     );
 
 CREATE TABLE subitem_metadata (
-    _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    _id INTEGER NOT NULL PRIMARY KEY,
     item_id INTEGER NOT NULL REFERENCES item(_id),
     subitem_id INTEGER NOT NULL,
     doc_id TEXT NOT NULL,

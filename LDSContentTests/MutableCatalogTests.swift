@@ -116,7 +116,7 @@ class MutableCatalogTests: XCTestCase {
     }
     
     func testSubitems() {
-        XCTAssertNoThrow(try catalog.addSubitemID(1, itemID: 2, docID: "3", docVersion: 4))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(id: 1, subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
         
         let itemAndSubitemID = catalog.itemAndSubitemIDForDocID("3")!
         XCTAssertEqual(itemAndSubitemID.itemID, 2)

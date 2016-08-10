@@ -76,24 +76,6 @@ class ItemPackageTests: XCTestCase {
         XCTAssertEqual(subitemSearchResults, searchResults.filter { $0.subitemID == subitemID })
     }
     
-    func testSubitemContentRange() {
-        let paragraphMetadata = itemPackage.paragraphMetadataForParagraphID("title1", subitemID: 1)
-        XCTAssertGreaterThan(paragraphMetadata!.id, 0)
-        XCTAssertEqual(paragraphMetadata!.subitemID, 1)
-        XCTAssertEqual(paragraphMetadata!.paragraphID, "title1")
-        XCTAssertGreaterThan(paragraphMetadata!.range.location, 0)
-        XCTAssertGreaterThan(paragraphMetadata!.range.length, 0)
-        
-        let paragraphMetadatas = itemPackage.paragraphMetadataForParagraphIDs(["title1", "subtitle1"], subitemID: 1)
-        XCTAssertEqual(paragraphMetadatas.count, 2)
-        for paragraphMetadata in paragraphMetadatas {
-            XCTAssertGreaterThan(paragraphMetadata.id, 0)
-            XCTAssertEqual(paragraphMetadata.subitemID, 1)
-            XCTAssertGreaterThan(paragraphMetadata.range.location, 0)
-            XCTAssertGreaterThan(paragraphMetadata.range.length, 0)
-        }
-    }
-    
     func testSubitem() {
         let uri = "/scriptures/bofm/1-ne/1"
         let subitem = itemPackage.subitemWithURI(uri)!

@@ -110,9 +110,6 @@ CREATE TABLE paragraph_metadata (
     );
         CREATE INDEX paragraph_metadata_paragraph_aid_idx ON paragraph_metadata (paragraph_aid);
 
-CREATE VIEW subitem_content_range AS
-    SELECT _id, subitem_id, paragraph_id, start_index, end_index FROM paragraph_metadata;
-
 CREATE TABLE author (
     _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     given_name TEXT NOT NULL,
