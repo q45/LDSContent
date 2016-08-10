@@ -34,6 +34,18 @@ public struct LibraryItem: LibraryNode, Equatable, Hashable {
     public let itemID: Int64
     public let itemExternalID: String
     
+    public init(id: Int64, externalID: String, librarySectionID: Int64?, librarySectionExternalID: String?, position: Int, title: String, obsolete: Bool, itemID: Int64, itemExternalID: String) {
+        self.id = id
+        self.externalID = externalID
+        self.librarySectionID = librarySectionID
+        self.librarySectionExternalID = librarySectionExternalID
+        self.position = position
+        self.title = title
+        self.obsolete = obsolete
+        self.itemID = itemID
+        self.itemExternalID = itemExternalID
+    }
+    
     public var hashValue: Int {
         return Int(id)
     }

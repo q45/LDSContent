@@ -101,7 +101,7 @@ class MutableItemPacakgeTests: XCTestCase {
     }
     
     func testNavCollectionIndexEntry() {
-        let navCollectionIndexEntry = try! itemPackage.addNavCollectionIndexEntryWithNavCollectionID(1, position: 1, title: "title", refNavCollectionID: 1, refNavItemID: nil)
+        let navCollectionIndexEntry = try! itemPackage.addNavCollectionIndexEntryWithNavCollectionID(1, position: 1, title: "title", refNavItemID: 1, section: 1, row: 2)
         
         let navCollectionIndexEntry2 = itemPackage.navCollectionIndexEntryWithID(navCollectionIndexEntry.id)
         XCTAssertEqual(navCollectionIndexEntry2, navCollectionIndexEntry)

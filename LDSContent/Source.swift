@@ -27,6 +27,12 @@ public struct Source: Equatable {
     public let id: Int64
     public let name: String
     public let type: SourceType
+    
+    public init(id: Int64, name: String, type: SourceType) {
+        self.id = id
+        self.name = name
+        self.type = type
+    }
 
 }
 

@@ -27,6 +27,11 @@ public struct ImageRendition: Equatable {
     public let size: CGSize
     public let url: NSURL
     
+    public init(size: CGSize, url: NSURL) {
+        self.size = size
+        self.url = url
+    }
+    
 }
 
 public func == (lhs: ImageRendition, rhs: ImageRendition) -> Bool {

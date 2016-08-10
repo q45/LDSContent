@@ -194,16 +194,17 @@ extension MutableItemPackage {
         return NavCollection(id: id, navSectionID: navSectionID, position: position, imageRenditions: imageRenditions, titleHTML: titleHTML, subtitle: subtitle, uri: uri)
     }
 
-    public func addNavCollectionIndexEntryWithNavCollectionID(navCollectionID: Int64, position: Int, title: String, refNavCollectionID: Int64?, refNavItemID: Int64?) throws -> NavCollectionIndexEntry {
+    public func addNavCollectionIndexEntryWithNavCollectionID(navCollectionID: Int64, position: Int, title: String, refNavItemID: Int64, section: Int, row: Int) throws -> NavCollectionIndexEntry {
         let id = try db.run(NavCollectionIndexEntryTable.table.insert(
             NavCollectionIndexEntryTable.navCollectionID <- navCollectionID,
             NavCollectionIndexEntryTable.position <- position,
             NavCollectionIndexEntryTable.title <- title,
-            NavCollectionIndexEntryTable.refNavCollectionID <- refNavCollectionID,
-            NavCollectionIndexEntryTable.refNavItemID <- refNavItemID
+            NavCollectionIndexEntryTable.refNavItemID <- refNavItemID,
+            NavCollectionIndexEntryTable.indexPathSection <- section,
+            NavCollectionIndexEntryTable.indexPathRow <- row
         ))
         
-        return NavCollectionIndexEntry(id: id, navCollectionID: navCollectionID, position: position, title: title, refNavCollectionID: refNavCollectionID, refNavItemID: refNavItemID)
+        return NavCollectionIndexEntry(id: id, navCollectionID: navCollectionID, position: position, title: title, refNavItemID: refNavItemID, indexPath: NSIndexPath(forItem: row, inSection: section))
     }
     
     public func addNavSectionWithNavCollectionID(navCollectionID: Int64, position: Int, title: String?, indentLevel: Int) throws -> NavSection {

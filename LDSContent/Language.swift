@@ -31,6 +31,15 @@ public struct Language: Equatable {
     public let rootLibraryCollectionID: Int64
     public let rootLibraryCollectionExternalID: String
     
+    public init(id: Int64, ldsLanguageCode: String, iso639_3Code: String, bcp47Code: String?, rootLibraryCollectionID: Int64, rootLibraryCollectionExternalID: String) {
+        self.id = id
+        self.ldsLanguageCode = ldsLanguageCode
+        self.iso639_3Code = iso639_3Code
+        self.bcp47Code = bcp47Code
+        self.rootLibraryCollectionID = rootLibraryCollectionID
+        self.rootLibraryCollectionExternalID = rootLibraryCollectionExternalID
+    }
+    
 }
 
 public func == (lhs: Language, rhs: Language) -> Bool {

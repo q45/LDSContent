@@ -97,10 +97,6 @@ class ItemNavCollectionViewController: UIViewController {
             for (sectionIndex, section) in sections.enumerate() {
                 for (rowIndex, itemNavNode) in section.itemNavNodes.enumerate() {
                     switch itemNavNode {
-                    case let itemNavCollection as NavCollection:
-                        if itemNavCollection.id == indexEntry.refNavCollectionID {
-                            indexPath = NSIndexPath(forRow: rowIndex, inSection: sectionIndex)
-                        }
                     case let itemNavItem as NavItem:
                         if itemNavItem.id == indexEntry.refNavItemID {
                             indexPath = NSIndexPath(forRow: rowIndex, inSection: sectionIndex)

@@ -65,8 +65,9 @@ CREATE TABLE nav_collection_index_entry (
     nav_collection_id INTEGER NOT NULL,
     position INTEGER NOT NULL,
     title TEXT NOT NULL,
-    ref_nav_collection_id INTEGER,
-    ref_nav_item_id INTEGER,
+    ref_nav_item_id INTEGER NOT NULL,
+    section INTEGER NOT NULL,
+    row INTEGER NOT NULL,
     UNIQUE(nav_collection_id, position)
     );
         CREATE INDEX nav_collection_index_entry_nav_collection_index ON nav_collection_index_entry (nav_collection_id);

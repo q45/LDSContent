@@ -28,8 +28,8 @@ public struct NavCollectionIndexEntry: Equatable {
     public let navCollectionID: Int64
     public let position: Int
     public let title: String
-    public let refNavCollectionID: Int64?
-    public let refNavItemID: Int64?
+    public let refNavItemID: Int64
+    public let indexPath: NSIndexPath
     
 }
 
@@ -38,6 +38,6 @@ public func == (lhs: NavCollectionIndexEntry, rhs: NavCollectionIndexEntry) -> B
         lhs.navCollectionID == rhs.navCollectionID &&
         lhs.position == rhs.position &&
         lhs.title == rhs.title &&
-        lhs.refNavCollectionID == rhs.refNavCollectionID &&
-        lhs.refNavItemID == rhs.refNavItemID
+        lhs.refNavItemID == rhs.refNavItemID &&
+        lhs.indexPath == rhs.indexPath
 }
