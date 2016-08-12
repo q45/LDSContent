@@ -32,12 +32,12 @@ extension ItemPackage {
         static let navCollectionID = Expression<Int64>("nav_collection_id")
         static let position = Expression<Int>("position")
         static let title = Expression<String>("title")
-        static let refNavItemID = Expression<Int64>("ref_nav_item_id")
+        static let listIndex = Expression<Int>("list_index")
         static let indexPathSection = Expression<Int>("section")
         static let indexPathRow = Expression<Int>("row")
         
         static func fromRow(row: Row) -> NavCollectionIndexEntry {
-            return NavCollectionIndexEntry(id: row[id], navCollectionID: row[navCollectionID], position: row[position], title: row[title], refNavItemID: row[refNavItemID], indexPath: NSIndexPath(forItem: row[indexPathRow], inSection: row[indexPathSection]))
+            return NavCollectionIndexEntry(id: row[id], navCollectionID: row[navCollectionID], position: row[position], title: row[title], listIndex: row[listIndex], indexPath: NSIndexPath(forItem: row[indexPathRow], inSection: row[indexPathSection]))
         }
         
     }
