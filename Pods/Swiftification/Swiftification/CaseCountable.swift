@@ -22,22 +22,12 @@
 
 import Foundation
 
-public struct RelatedAudioItem: Equatable {
-    
-    public let id: Int64
-    public let subitemID: Int64
-    public let mediaURL: NSURL
-    public let fileSize: Int64
-    public let duration: Int
-    public let voice: RelatedAudioVoice?
-    
-}
+public protocol CaseCountable: RawRepresentable {}
 
-public func == (lhs: RelatedAudioItem, rhs: RelatedAudioItem) -> Bool {
-    return lhs.id == rhs.id &&
-        lhs.subitemID == rhs.subitemID &&
-        lhs.mediaURL == rhs.mediaURL &&
-        lhs.fileSize == rhs.fileSize &&
-        lhs.duration == rhs.duration &&
-        lhs.voice == rhs.voice
+public extension CaseCountable where RawValue: IntegerType {
+    static var count: Int {
+        var i: RawValue = 0
+        while let _ = Self(rawValue: i) { i = i.successor() }
+        return Int(i.toIntMax())
+    }
 }

@@ -22,22 +22,22 @@
 
 import Foundation
 
-public struct RelatedAudioItem: Equatable {
+public struct RelatedVideoItemSource: Equatable {
     
     public let id: Int64
-    public let subitemID: Int64
     public let mediaURL: NSURL
-    public let fileSize: Int64
-    public let duration: Int
-    public let voice: RelatedAudioVoice?
+    public let type: String
+    public let size: CGSize?
+    public let fileSize: Int64?
+    public let relatedVideoItemID: Int64
     
 }
 
-public func == (lhs: RelatedAudioItem, rhs: RelatedAudioItem) -> Bool {
+public func == (lhs: RelatedVideoItemSource, rhs: RelatedVideoItemSource) -> Bool {
     return lhs.id == rhs.id &&
-        lhs.subitemID == rhs.subitemID &&
         lhs.mediaURL == rhs.mediaURL &&
+        lhs.type == rhs.type &&
+        lhs.size == rhs.size &&
         lhs.fileSize == rhs.fileSize &&
-        lhs.duration == rhs.duration &&
-        lhs.voice == rhs.voice
+        lhs.relatedVideoItemID == rhs.relatedVideoItemID
 }

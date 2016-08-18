@@ -87,10 +87,21 @@ class MutableItemPacakgeTests: XCTestCase {
     }
     
     func testRelatedAudioItem() {
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(1, mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(1, mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: .Male))
         
         let relatedAudioItems = itemPackage.relatedAudioItemsForSubitemWithID(1)
         XCTAssertGreaterThan(relatedAudioItems.count, 0)
+    }
+    
+    func testRelatedVideoItem() {
+        XCTAssertNoThrow(try itemPackage.addRelatedVideoItem(subitemID: 1, posterURL: NSURL(string: "https://www.example.com/poster.jpg")!, videoID: "1", title: "TestVideo"))
+        XCTAssertNoThrow(try itemPackage.addRelatedVideoItemSource(mediaURL: NSURL(string: "https://www.example.com/video.mp4")!, type: "mp4", size: CGSize(width: 1280, height: 720), fileSize: 123456789, relatedVideoItemID: 1))
+        
+        let relatedVideoItems = itemPackage.relatedVideoItemsForSubitemWithID(1)
+        XCTAssertGreaterThan(relatedVideoItems.count, 0)
+        
+        let relatedVideoSources = itemPackage.relatedVideoItemSourcesForRelatedVideoItemWithID(1)
+        XCTAssertGreaterThan(relatedVideoSources.count, 0)
     }
     
     func testNavCollection() {
@@ -101,7 +112,7 @@ class MutableItemPacakgeTests: XCTestCase {
     }
     
     func testNavCollectionIndexEntry() {
-        let navCollectionIndexEntry = try! itemPackage.addNavCollectionIndexEntryWithNavCollectionID(1, position: 1, title: "title", refNavItemID: 1, section: 1, row: 2)
+        let navCollectionIndexEntry = try! itemPackage.addNavCollectionIndexEntryWithNavCollectionID(1, position: 1, title: "title", listIndex: 1, section: 1, row: 2)
         
         let navCollectionIndexEntry2 = itemPackage.navCollectionIndexEntryWithID(navCollectionIndexEntry.id)
         XCTAssertEqual(navCollectionIndexEntry2, navCollectionIndexEntry)

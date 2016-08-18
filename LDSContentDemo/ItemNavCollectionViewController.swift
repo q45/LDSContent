@@ -93,26 +93,10 @@ class ItemNavCollectionViewController: UIViewController {
         
         var previousIndexPath: NSIndexPath?
         sectionIndexes = itemPackage.navCollectionIndexEntriesForNavCollectionWithID(itemNavCollection.id).flatMap { indexEntry in
-            var indexPath: NSIndexPath?
-            for (sectionIndex, section) in sections.enumerate() {
-                for (rowIndex, itemNavNode) in section.itemNavNodes.enumerate() {
-                    switch itemNavNode {
-                    case let itemNavItem as NavItem:
-                        if itemNavItem.id == indexEntry.refNavItemID {
-                            indexPath = NSIndexPath(forRow: rowIndex, inSection: sectionIndex)
-                        }
-                    default:
-                        break
-                    }
-                }
-            }
+            guard let indexPath = indexEntry.indexPath ?? previousIndexPath else { return nil }
             
-            if let indexPath = indexPath ?? previousIndexPath {
-                previousIndexPath = indexPath
-                return (title: indexEntry.title, indexPath: indexPath)
-            } else {
-                return nil
-            }
+            previousIndexPath = indexPath
+            return (title: indexEntry.title, indexPath: indexPath)
         }
     }
     

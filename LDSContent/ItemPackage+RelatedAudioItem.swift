@@ -31,26 +31,31 @@ public extension ItemPackage {
         static let id = Expression<Int64>("_id")
         static let subitemID = Expression<Int64>("subitem_id")
         static let mediaURL = Expression<String>("media_url")
-        static let fileSize = Expression<Int>("file_size")
+        static let fileSize = Expression<Int64>("file_size")
         static let duration = Expression<Int>("duration")
+        static let voice = Expression<RelatedAudioVoice?>("related_audio_voice_id")
         
-        static func fromRow(row: Row) -> RelatedAudioItem {
-            return RelatedAudioItem(id: row[id], subitemID: row[subitemID], mediaURL: NSURL(string: row[mediaURL])!, fileSize: row[fileSize], duration: row[duration])
+        static func fromRow(row: Row) -> RelatedAudioItem? {
+            guard let mediaURL = NSURL(string: row[mediaURL]) else { return nil }
+            
+            return RelatedAudioItem(id: row[id], subitemID: row[subitemID], mediaURL: mediaURL, fileSize: row[fileSize], duration: row[duration], voice: row.get(voice))
         }
         
-        static func fromNamespacedRow(row: Row) -> RelatedAudioItem {
-            return RelatedAudioItem(id: row[RelatedAudioItemTable.table[id]], subitemID: row[RelatedAudioItemTable.table[subitemID]], mediaURL: NSURL(string: row[RelatedAudioItemTable.table[mediaURL]])!, fileSize: row[RelatedAudioItemTable.table[fileSize]], duration: row[RelatedAudioItemTable.table[duration]])
+        static func fromNamespacedRow(row: Row) -> RelatedAudioItem? {
+            guard let mediaURL = NSURL(string: row[RelatedAudioItemTable.table[mediaURL]]) else { return nil }
+            
+            return RelatedAudioItem(id: row[RelatedAudioItemTable.table[id]], subitemID: row[RelatedAudioItemTable.table[subitemID]], mediaURL: mediaURL, fileSize: row[RelatedAudioItemTable.table[fileSize]], duration: row[RelatedAudioItemTable.table[duration]], voice: row.get(RelatedAudioItemTable.voice))
         }
         
     }
     
     public func firstRelatedAudioItemForSubitemWithURI(subitemURI: String) -> RelatedAudioItem? {
-        return db.pluck(RelatedAudioItemTable.table.join(SubitemTable.table.filter(SubitemTable.uri == subitemURI), on: SubitemTable.table[SubitemTable.id] == RelatedAudioItemTable.table[RelatedAudioItemTable.subitemID]).order(SubitemTable.table[SubitemTable.id])).map { RelatedAudioItemTable.fromNamespacedRow($0) }
+        return db.pluck(RelatedAudioItemTable.table.join(SubitemTable.table.filter(SubitemTable.uri == subitemURI), on: SubitemTable.table[SubitemTable.id] == RelatedAudioItemTable.table[RelatedAudioItemTable.subitemID]).order(SubitemTable.table[SubitemTable.id])).flatMap { RelatedAudioItemTable.fromNamespacedRow($0) }
     }
     
     public func relatedAudioItemsForSubitemWithID(subitemID: Int64) -> [RelatedAudioItem] {
         do {
-            return try db.prepare(RelatedAudioItemTable.table.filter(RelatedAudioItemTable.subitemID == subitemID)).map { RelatedAudioItemTable.fromRow($0) }
+            return try db.prepare(RelatedAudioItemTable.table.filter(RelatedAudioItemTable.subitemID == subitemID)).flatMap { RelatedAudioItemTable.fromRow($0) }
         } catch {
             return []
         }
@@ -58,7 +63,7 @@ public extension ItemPackage {
     
     public func relatedAudioItemsForSubitemsWithIDs(subitemIDs: [Int64]) -> [RelatedAudioItem] {
         do {
-            return try db.prepare(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID))).map { RelatedAudioItemTable.fromRow($0) }
+            return try db.prepare(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID))).flatMap { RelatedAudioItemTable.fromRow($0) }
         } catch {
             return []
         }
@@ -96,8 +101,5 @@ public extension ItemPackage {
         let subitemIDs = subitemIDsForDescendantsOfNavNode(collection)
         return hasRelatedAudioItemsForSubitemsWithIDs(subitemIDs)
     }
-
-
-    
     
 }

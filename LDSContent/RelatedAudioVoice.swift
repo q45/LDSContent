@@ -21,23 +21,31 @@
 //
 
 import Foundation
+import SQLite
 
-public struct RelatedAudioItem: Equatable {
+/// The type of content
+public enum RelatedAudioVoice: Int64 {
     
-    public let id: Int64
-    public let subitemID: Int64
-    public let mediaURL: NSURL
-    public let fileSize: Int64
-    public let duration: Int
-    public let voice: RelatedAudioVoice?
+    /// Male audio voice
+    case Male = 1
+    
+    /// Female audio voice
+    case Female = 2
     
 }
 
-public func == (lhs: RelatedAudioItem, rhs: RelatedAudioItem) -> Bool {
-    return lhs.id == rhs.id &&
-        lhs.subitemID == rhs.subitemID &&
-        lhs.mediaURL == rhs.mediaURL &&
-        lhs.fileSize == rhs.fileSize &&
-        lhs.duration == rhs.duration &&
-        lhs.voice == rhs.voice
+extension RelatedAudioVoice: Value {
+    
+    public static var declaredDatatype: String {
+        return Int64.declaredDatatype
+    }
+    
+    public static func fromDatatypeValue(intValue: Int64) -> RelatedAudioVoice {
+        return RelatedAudioVoice(rawValue: intValue) ?? .Male
+    }
+    
+    public var datatypeValue: Int64 {
+        return rawValue
+    }
+    
 }

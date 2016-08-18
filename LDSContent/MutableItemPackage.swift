@@ -170,15 +170,41 @@ extension MutableItemPackage {
         return RelatedContentItem(id: id, subitemID: subitemID, refID: refID, labelHTML: labelHTML, originID: originID, contentHTML: contentHTML, wordOffset: wordOffset, byteLocation: byteLocation)
     }
     
-    public func addRelatedAudioItemWithSubitemID(subitemID: Int64, mediaURL: NSURL, fileSize: Int, duration: Int) throws -> RelatedAudioItem {
+    public func addRelatedAudioItemWithSubitemID(subitemID: Int64, mediaURL: NSURL, fileSize: Int64, duration: Int, voice: RelatedAudioVoice?) throws -> RelatedAudioItem {
         let id = try db.run(RelatedAudioItemTable.table.insert(
             RelatedAudioItemTable.subitemID <- subitemID,
             RelatedAudioItemTable.mediaURL <- mediaURL.absoluteString,
             RelatedAudioItemTable.fileSize <- fileSize,
-            RelatedAudioItemTable.duration <- duration
+            RelatedAudioItemTable.duration <- duration,
+            RelatedAudioItemTable.voice <- voice
         ))
         
-        return RelatedAudioItem(id: id, subitemID: subitemID, mediaURL: mediaURL, fileSize: fileSize, duration: duration)
+        return RelatedAudioItem(id: id, subitemID: subitemID, mediaURL: mediaURL, fileSize: fileSize, duration: duration, voice: voice)
+    }
+    
+    public func addRelatedVideoItem(subitemID subitemID: Int64, posterURL: NSURL, videoID: String, title: String) throws -> RelatedVideoItem {
+        let id = try db.run(RelatedVideoItemTable.table.insert(
+            RelatedVideoItemTable.subitemID <- subitemID,
+            RelatedVideoItemTable.posterURL <- posterURL.absoluteString,
+            RelatedVideoItemTable.videoID <- videoID,
+            RelatedVideoItemTable.title <- title
+        ))
+        
+        return RelatedVideoItem(id: id, subitemID: subitemID, posterURL: posterURL, videoID: videoID, title: title)
+    }
+    
+    public func addRelatedVideoItemSource(mediaURL mediaURL: NSURL, type: String, size: CGSize?, fileSize: Int64?, relatedVideoItemID: Int64) throws -> RelatedVideoItemSource {
+        
+        let id = try db.run(RelatedVideoItemSourceTable.table.insert(
+            RelatedVideoItemSourceTable.mediaURL <- mediaURL.absoluteString,
+            RelatedVideoItemSourceTable.type <- type,
+            RelatedVideoItemSourceTable.width <- size.flatMap { Int($0.width) },
+            RelatedVideoItemSourceTable.height <- size.flatMap { Int($0.height) },
+            RelatedVideoItemSourceTable.fileSize <- fileSize,
+            RelatedVideoItemSourceTable.relatedVideoItemID <- relatedVideoItemID
+        ))
+        
+        return RelatedVideoItemSource(id: id, mediaURL: mediaURL, type: type, size: size, fileSize: fileSize, relatedVideoItemID: relatedVideoItemID)
     }
     
     public func addNavCollectionWithNavSectionID(navSectionID: Int64?, position: Int, imageRenditions: [ImageRendition], titleHTML: String, subtitle: String?, uri: String) throws -> NavCollection {

@@ -38,14 +38,41 @@ CREATE TABLE related_content_item (
     );
         CREATE INDEX related_content_item_subitem_index ON related_content_item (subitem_id);
 
+CREATE TABLE related_audio_voice (
+    _id INTEGER NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL
+);
+        INSERT INTO related_audio_voice (_id, name) VALUES (1, 'Male');
+        INSERT INTO related_audio_voice (_id, name) VALUES (2, 'Female');
+
 CREATE TABLE related_audio_item (
     _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     subitem_id INTEGER NOT NULL,
     media_url TEXT NOT NULL,
     file_size INTEGER NOT NULL,
-    duration INTEGER NOT NULL
+    duration INTEGER NOT NULL,
+    related_audio_voice_id INTEGER REFERENCES related_audio_voice(_id)
     );
         CREATE INDEX related_audio_item_subitem_index ON related_audio_item (subitem_id);
+
+CREATE TABLE related_video_item (
+    _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    subitem_id INTEGER NOT NULL,
+    poster_url TEXT NOT NULL,
+    data_video_id TEXT NOT NULL,
+    data_video_title TEXT NOT NULL
+    );
+        CREATE INDEX related_video_item_subitem_index ON related_video_item (subitem_id);
+
+CREATE TABLE related_video_item_source (
+    _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    media_url TEXT NOT NULL,
+    type TEXT NOT NULL,
+    width INTEGER,
+    height INTEGER,
+    file_size INTEGER,
+    related_video_item_id INTEGER REFERENCES related_video_item(_id)
+    );
 
 CREATE TABLE nav_collection (
     _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
