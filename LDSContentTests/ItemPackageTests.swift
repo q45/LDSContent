@@ -123,7 +123,9 @@ class ItemPackageTests: XCTestCase {
         let navCollection3 = itemPackage.navCollectionWithURI(navCollection.uri)
         XCTAssertEqual(navCollection3, navCollection)
         
-        let navCollections = itemPackage.navCollectionsForNavSectionWithID(2)
+        let oneNephiNavCollection = itemPackage.navCollectionWithURI("/scriptures/bofm#map3")! // 1 Nephi
+        let oneNephiNavSection = itemPackage.navSectionWithID(oneNephiNavCollection.navSectionID!)!
+        let navCollections = itemPackage.navCollectionsForNavSectionWithID(oneNephiNavSection.id)
         XCTAssertGreaterThan(navCollections.count, 0)
     }
     

@@ -93,7 +93,8 @@ public class ContentController {
     
     private func deleteSiblings(ofURL url: NSURL) {
         guard let parentDirectory = url.URLByDeletingLastPathComponent, items = try? NSFileManager.defaultManager().contentsOfDirectoryAtURL(parentDirectory, includingPropertiesForKeys: nil, options: [.SkipsHiddenFiles]) else { return }
-        for siblingURL in items where siblingURL != url {
+        
+        for siblingURL in items where siblingURL.lastPathComponent != url.lastPathComponent {
             do {
                 try NSFileManager.defaultManager().removeItemAtURL(siblingURL)
             } catch {}

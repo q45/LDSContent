@@ -14,6 +14,7 @@ import XCTest
 class ContentControllerTests: XCTestCase {
     
     static var contentController: ContentController!
+    static let Timeout: NSTimeInterval = 120
     
     func testInstallingOldItemPackagesNotAllowed() {
         let installExpectation = expectationWithDescription("Install item")
@@ -37,7 +38,7 @@ class ContentControllerTests: XCTestCase {
             }
         }
         
-        waitForExpectationsWithTimeout(30, handler: nil)
+        waitForExpectationsWithTimeout(ContentControllerTests.Timeout, handler: nil)
     }
     
     func testOldCatalogsCleanedUpOnUpdate() {
@@ -72,7 +73,7 @@ class ContentControllerTests: XCTestCase {
             }
         }
         
-        waitForExpectationsWithTimeout(30, handler: nil)
+        waitForExpectationsWithTimeout(ContentControllerTests.Timeout, handler: nil)
     }
     
     func testOldItemPackagesCleanedUpOnUpdate() {
@@ -98,7 +99,7 @@ class ContentControllerTests: XCTestCase {
             }
         }
         
-        waitForExpectationsWithTimeout(30, handler: nil)
+        waitForExpectationsWithTimeout(ContentControllerTests.Timeout, handler: nil)
     }
     
 }

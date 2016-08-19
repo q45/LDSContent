@@ -58,9 +58,9 @@ CREATE TABLE related_audio_item (
 CREATE TABLE related_video_item (
     _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     subitem_id INTEGER NOT NULL,
-    poster_url TEXT NOT NULL,
-    data_video_id TEXT NOT NULL,
-    data_video_title TEXT NOT NULL
+    poster_url TEXT,
+    video_id TEXT NOT NULL,
+    title TEXT NOT NULL
     );
         CREATE INDEX related_video_item_subitem_index ON related_video_item (subitem_id);
 
