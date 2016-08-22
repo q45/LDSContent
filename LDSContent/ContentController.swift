@@ -35,7 +35,7 @@ public class ContentController {
     public let location: NSURL
     
     let contentInventory: ContentInventory
-    let session = Session()
+    let session: Session
     var progressByItemID = [Int64: Float]()
     
     public let catalogUpdateObservers = ObserverSet<Catalog>()
@@ -43,9 +43,10 @@ public class ContentController {
     public let itemPackageUninstallObservers = ObserverSet<Item>()
     public let itemPackageInstallProgressObservers = ObserverSet<(item: Item, progress: Float)>()
     
-    /// Constructs a controller for content at `location`.
-    public init(location: NSURL) throws {
+    /// Constructs a controller for content at `location` with baseURL.
+    public init(location: NSURL, baseURL: NSURL) throws {
         self.location = location
+        session = Session(baseURL: baseURL)
         
         do {
             contentInventory = try ContentInventory(path: location.URLByAppendingPathComponent("Inventory.sqlite").path)

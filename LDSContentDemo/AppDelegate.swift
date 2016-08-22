@@ -31,10 +31,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     lazy var contentController: ContentController! = {
         let location = NSFileManager.privateDocumentsURL.URLByAppendingPathComponent("Content")
+        let baseURL = NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!
         do {
             try NSFileManager.defaultManager().createDirectoryAtURL(location, withIntermediateDirectories: true, attributes: nil)
         } catch {}
-        return try? ContentController(location: location)
+        return try? ContentController(location: location, baseURL: baseURL)
     }()
     
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {

@@ -74,12 +74,7 @@ class DownloadItemPackageOperation: Operation {
     }
     
     func downloadItemPackage(externalID externalID: String, version: Int, progress: (amount: Float) -> Void, completion: (DownloadResult) -> Void) {
-        guard let baseURL = NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/") else {
-            completion(.Error(error: Error.errorWithCode(.Unknown, failureReason: "Malformed URL")))
-            return
-        }
-        
-        let compressedItemPackageURL = baseURL.URLByAppendingPathComponent("v3/item-packages/\(externalID)/\(version).zip")
+        let compressedItemPackageURL = session.baseURL.URLByAppendingPathComponent("v3/item-packages/\(externalID)/\(version).zip")
         let request = NSMutableURLRequest(URL: compressedItemPackageURL)
         let task = session.urlSession.downloadTaskWithRequest(request)
         session.registerCallbacks(progress: progress, completion: { result in

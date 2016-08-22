@@ -39,8 +39,15 @@ class Session: NSObject {
         return queue
     }()
     
+    let baseURL: NSURL
+    
     private var progressByTaskIdentifier: [Int: (amount: Float) -> Void] = [:]
     private var completionByTaskIdentifier: [Int: (result: DownloadResult) -> Void] = [:]
+    
+    init(baseURL: NSURL) {
+        self.baseURL = baseURL
+        super.init()
+    }
     
     private func catalogOperationsForCatalogs(catalogs: [(name: String, baseURL: NSURL, destination: (version: Int) -> NSURL)], progress: (amount: Float) -> Void = { _ in }, completion: (DownloadCatalogResult) -> Void) -> [Operation] {
         return catalogs.flatMap { (name, baseURL, destination) -> [Operation] in
@@ -52,9 +59,7 @@ class Session: NSObject {
     }
     
     func updateDefaultCatalog(destination destination: (version: Int) -> NSURL, progress: (amount: Float) -> Void = { _ in }, completion: (DownloadCatalogResult) -> Void) {
-        guard let defaultURL = NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/") else { return completion(.Error(errors: [Error.errorWithCode(.Unknown, failureReason: "Malformed base URL for default catalog.")])) }
-        
-        let operations = catalogOperationsForCatalogs([(ContentController.defaultCatalogName, defaultURL, destination)], progress: progress, completion: completion)
+        let operations = catalogOperationsForCatalogs([(ContentController.defaultCatalogName, baseURL, destination)], progress: progress, completion: completion)
         operationQueue.addOperations(operations)
     }
     

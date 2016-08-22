@@ -26,7 +26,7 @@ import XCTest
 class DownloadCatalogTests: XCTestCase {
     
     func testDownloadLatestCatalog() {
-        let session = Session()
+        let session = Session(baseURL: NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!)
         let catalogURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
         let downloadExpectation = expectationWithDescription("Download latest catalog")
         let alreadyCurrentExpectation = self.expectationWithDescription("Already downloaded catalog")
