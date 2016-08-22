@@ -303,7 +303,7 @@ extension MutableItemPackage {
         return AuthorRole(id: id, authorID: author.id, roleID: role.id, position: position)
     }
     
-    public func addSubitemAuthor(subitem: Subitem, author: Author) throws {
+    public func addSubitemAuthor(subitem subitem: Subitem, author: Author) throws {
         try db.run(SubitemAuthorTable.table.insert(or: .Ignore,
             SubitemAuthorTable.subitemID <- subitem.id,
             SubitemAuthorTable.authorID <- author.id

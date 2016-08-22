@@ -157,7 +157,7 @@ CREATE TABLE role (
 CREATE TABLE subitem_author (
     _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     subitem_id INTEGER NOT NULL REFERENCES subitem(_id),
-    author_id INTEGER NOT NULL REFERENCES subitem(_id),
+    author_id INTEGER NOT NULL REFERENCES author(_id),
     UNIQUE(subitem_id, author_id)
     );
 
