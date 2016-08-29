@@ -49,8 +49,13 @@ public extension ItemPackage {
         
     }
     
-    public func firstRelatedAudioItemForSubitemWithURI(subitemURI: String) -> RelatedAudioItem? {
-        return db.pluck(RelatedAudioItemTable.table.join(SubitemTable.table.filter(SubitemTable.uri == subitemURI), on: SubitemTable.table[SubitemTable.id] == RelatedAudioItemTable.table[RelatedAudioItemTable.subitemID]).order(SubitemTable.table[SubitemTable.id])).flatMap { RelatedAudioItemTable.fromNamespacedRow($0) }
+    public func relatedAudioItemForSubitemWithURI(subitemURI: String, relatedAudioVoice: RelatedAudioVoice? = nil) -> RelatedAudioItem? {
+        do {
+            let relatedAudioItems = try db.prepare(RelatedAudioItemTable.table.join(SubitemTable.table, on: SubitemTable.table[SubitemTable.id] == RelatedAudioItemTable.table[RelatedAudioItemTable.subitemID]).filter(SubitemTable.uri == subitemURI).order(RelatedAudioItemTable.voice)).flatMap { RelatedAudioItemTable.fromNamespacedRow($0) }
+            return relatedAudioItems.find { $0.voice == relatedAudioVoice } ?? relatedAudioItems.first
+        } catch {
+            return nil
+        }
     }
     
     public func relatedAudioItemsForSubitemWithID(subitemID: Int64) -> [RelatedAudioItem] {
