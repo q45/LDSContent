@@ -141,6 +141,7 @@ CREATE TABLE author (
     _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     given_name TEXT NOT NULL,
     family_name TEXT NOT NULL,
+    image_renditions TEXT,
     UNIQUE(given_name, family_name)
     );
         CREATE INDEX author_given_name_idx ON author (given_name);

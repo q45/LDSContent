@@ -317,15 +317,16 @@ extension ItemPackage {
         static let id = Expression<Int64>("_id")
         static let givenName = Expression<String>("given_name")
         static let familyName = Expression<String>("family_name")
+        static let imageRenditions = Expression<String>("image_renditions")
         
         static func fromRow(row: Row) -> Author {
-            return Author(id: row[id], givenName: row[givenName], familyName: row[familyName])
+            return Author(id: row[id], givenName: row[givenName], familyName: row[familyName], imageRenditions: (row[imageRenditions] ?? "").toImageRenditions() ?? [])
         }
     }
     
     public func authorsOfSubitemWithID(subitemID: Int64) -> [Author] {
         do {
-            return try db.prepare(AuthorTable.table.filter(SubitemAuthorTable.subitemID == subitemID && AuthorTable.id == SubitemAuthorTable.authorID).order(AuthorTable.familyName).order(AuthorTable.givenName)).map { AuthorTable.fromRow($0) }
+            return try db.prepare(AuthorTable.table.select(AuthorTable.table[*]).join(SubitemAuthorTable.table, on: AuthorTable.table[AuthorTable.id] == SubitemAuthorTable.authorID).filter(SubitemAuthorTable.subitemID == subitemID).order(AuthorTable.familyName).order(AuthorTable.familyName, AuthorTable.givenName)).map { AuthorTable.fromRow($0) }
         } catch {
             return []
         }

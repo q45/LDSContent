@@ -270,16 +270,17 @@ extension MutableItemPackage {
         ))
     }
     
-    public func addAuthor(givenName givenName: String, familyName: String) throws -> Author {
+    public func addAuthor(givenName givenName: String, familyName: String, imageRenditions: [ImageRendition]) throws -> Author {
         if let author = authorWithGivenName(givenName, familyName: familyName) {
             return author
         }
         
         let id = try db.run(AuthorTable.table.insert(or: .Ignore,
             AuthorTable.givenName <- givenName,
-            AuthorTable.familyName <- familyName
+            AuthorTable.familyName <- familyName,
+            AuthorTable.imageRenditions <- String(imageRenditions)
         ))
-        return Author(id: id, givenName: givenName, familyName: familyName)
+        return Author(id: id, givenName: givenName, familyName: familyName, imageRenditions: imageRenditions)
     }
     
     public func addRole(name name: String, position: Int) throws -> Role {

@@ -27,9 +27,10 @@ public struct Author: Equatable {
     public let id: Int64
     public let givenName: String
     public let familyName: String
+    public let imageRenditions: [ImageRendition]
     
 }
 
 public func == (lhs: Author, rhs: Author) -> Bool {
-    return lhs.id == rhs.id && lhs.givenName == rhs.givenName && lhs.familyName == rhs.familyName
+    return lhs.id == rhs.id && lhs.givenName == rhs.givenName && lhs.familyName == rhs.familyName && lhs.imageRenditions == rhs.imageRenditions
 }
