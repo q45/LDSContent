@@ -32,7 +32,7 @@ CREATE TABLE library_collection (
     library_section_id INTEGER,
     library_section_external_id TEXT,
     position INTEGER NOT NULL,
-    title TEXT NOT NULL,
+    title_html TEXT NOT NULL,
     cover_renditions TEXT,
     type_id INTEGER NOT NULL,
     UNIQUE(external_id)
@@ -65,7 +65,7 @@ CREATE TABLE library_item (
     library_section_id INTEGER,
     library_section_external_id TEXT,
     position INTEGER NOT NULL,
-    title TEXT NOT NULL,
+    title_html TEXT NOT NULL,
     is_obsolete INTEGER NOT NULL,
     item_id INTEGER NOT NULL,
     item_external_id TEXT NOT NULL,

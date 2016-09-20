@@ -29,17 +29,17 @@ public struct LibraryCollection: LibraryNode, Equatable {
     public let librarySectionID: Int64?
     public let librarySectionExternalID: String?
     public let position: Int
-    public let title: String
+    public let titleHTML: String
     public let coverRenditions: [ImageRendition]
     public let type: LibraryCollectionType
     
-    public init(id: Int64, externalID: String, librarySectionID: Int64?, librarySectionExternalID: String?, position: Int, title: String, coverRenditions: [ImageRendition], type: LibraryCollectionType) {
+    public init(id: Int64, externalID: String, librarySectionID: Int64?, librarySectionExternalID: String?, position: Int, titleHTML: String, coverRenditions: [ImageRendition], type: LibraryCollectionType) {
         self.id = id
         self.externalID = externalID
         self.librarySectionID = librarySectionID
         self.librarySectionExternalID = librarySectionExternalID
         self.position = position
-        self.title = title
+        self.titleHTML = titleHTML
         self.coverRenditions = coverRenditions
         self.type = type
     }
@@ -52,7 +52,7 @@ public func == (lhs: LibraryCollection, rhs: LibraryCollection) -> Bool {
         lhs.librarySectionID == rhs.librarySectionID &&
         lhs.librarySectionExternalID == rhs.librarySectionExternalID &&
         lhs.position == rhs.position &&
-        lhs.title == rhs.title &&
+        lhs.titleHTML == rhs.titleHTML &&
         lhs.coverRenditions == rhs.coverRenditions &&
         lhs.type == rhs.type
 }

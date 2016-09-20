@@ -151,7 +151,7 @@ extension MutableCatalog {
             LibraryCollectionTable.librarySectionID <- libraryCollection.librarySectionID,
             LibraryCollectionTable.librarySectionExternalID <- libraryCollection.librarySectionExternalID,
             LibraryCollectionTable.position <- libraryCollection.position,
-            LibraryCollectionTable.title <- libraryCollection.title,
+            LibraryCollectionTable.titleHTML <- libraryCollection.titleHTML,
             LibraryCollectionTable.coverRenditions <- String(libraryCollection.coverRenditions),
             LibraryCollectionTable.typeID <- libraryCollection.type.rawValue
         ))
@@ -176,7 +176,7 @@ extension MutableCatalog {
             LibraryItemTable.librarySectionID <- libraryItem.librarySectionID,
             LibraryItemTable.librarySectionExternalID <- libraryItem.librarySectionExternalID,
             LibraryItemTable.position <- libraryItem.position,
-            LibraryItemTable.title <- libraryItem.title,
+            LibraryItemTable.titleHTML <- libraryItem.titleHTML,
             LibraryItemTable.obsolete <- libraryItem.obsolete,
             LibraryItemTable.itemID <- libraryItem.itemID,
             LibraryItemTable.itemExternalID <- libraryItem.itemExternalID

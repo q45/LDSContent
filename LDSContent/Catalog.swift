@@ -426,16 +426,16 @@ extension Catalog {
         static let librarySectionID = Expression<Int64?>("library_section_id")
         static let librarySectionExternalID = Expression<String?>("library_section_external_id")
         static let position = Expression<Int>("position")
-        static let title = Expression<String>("title")
+        static let titleHTML = Expression<String>("title_html")
         static let coverRenditions = Expression<String?>("cover_renditions")
         static let typeID = Expression<Int>("type_id")
         
         static func fromRow(row: Row) -> LibraryCollection {
-            return LibraryCollection(id: row[id], externalID: row[externalID], librarySectionID: row[librarySectionID], librarySectionExternalID: row[librarySectionExternalID], position: row[position], title: row[title], coverRenditions: (row[coverRenditions] ?? "").toImageRenditions() ?? [], type: LibraryCollectionType(rawValue: row[typeID]) ?? .Default)
+            return LibraryCollection(id: row[id], externalID: row[externalID], librarySectionID: row[librarySectionID], librarySectionExternalID: row[librarySectionExternalID], position: row[position], titleHTML: row[titleHTML], coverRenditions: (row[coverRenditions] ?? "").toImageRenditions() ?? [], type: LibraryCollectionType(rawValue: row[typeID]) ?? .Default)
         }
         
         static func fromNamespacedRow(row: Row) -> LibraryCollection {
-            return LibraryCollection(id: row[LibraryCollectionTable.table[id]], externalID: row[LibraryCollectionTable.table[externalID]], librarySectionID: row[LibraryCollectionTable.table[librarySectionID]], librarySectionExternalID: row[LibraryCollectionTable.table[librarySectionExternalID]], position: row[LibraryCollectionTable.table[position]], title: row[LibraryCollectionTable.table[title]], coverRenditions: (row[LibraryCollectionTable.table[coverRenditions]] ?? "").toImageRenditions() ?? [], type: LibraryCollectionType(rawValue: row[LibraryCollectionTable.table[typeID]]) ?? .Default)
+            return LibraryCollection(id: row[LibraryCollectionTable.table[id]], externalID: row[LibraryCollectionTable.table[externalID]], librarySectionID: row[LibraryCollectionTable.table[librarySectionID]], librarySectionExternalID: row[LibraryCollectionTable.table[librarySectionExternalID]], position: row[LibraryCollectionTable.table[position]], titleHTML: row[LibraryCollectionTable.table[titleHTML]], coverRenditions: (row[LibraryCollectionTable.table[coverRenditions]] ?? "").toImageRenditions() ?? [], type: LibraryCollectionType(rawValue: row[LibraryCollectionTable.table[typeID]]) ?? .Default)
         }
         
     }
@@ -494,17 +494,17 @@ extension Catalog {
         static let librarySectionID = Expression<Int64?>("library_section_id")
         static let librarySectionExternalID = Expression<String?>("library_section_external_id")
         static let position = Expression<Int>("position")
-        static let title = Expression<String>("title")
+        static let titleHTML = Expression<String>("title_html")
         static let obsolete = Expression<Bool>("is_obsolete")
         static let itemID = Expression<Int64>("item_id")
         static let itemExternalID = Expression<String>("item_external_id")
         
         static func fromRow(row: Row) -> LibraryItem {
-            return LibraryItem(id: row[id], externalID: row[externalID], librarySectionID: row[librarySectionID], librarySectionExternalID: row[librarySectionExternalID], position: row[position], title: row[title], obsolete: row[obsolete], itemID: row[itemID], itemExternalID: row[itemExternalID])
+            return LibraryItem(id: row[id], externalID: row[externalID], librarySectionID: row[librarySectionID], librarySectionExternalID: row[librarySectionExternalID], position: row[position], titleHTML: row[titleHTML], obsolete: row[obsolete], itemID: row[itemID], itemExternalID: row[itemExternalID])
         }
         
         static func fromNamespacedRow(row: Row) -> LibraryItem {
-            return LibraryItem(id: row[LibraryItemTable.table[id]], externalID: row[LibraryItemTable.table[externalID]], librarySectionID: row[LibraryItemTable.table[librarySectionID]], librarySectionExternalID: row[LibraryItemTable.table[librarySectionExternalID]], position: row[LibraryItemTable.table[position]], title: row[LibraryItemTable.table[title]], obsolete: row[LibraryItemTable.table[obsolete]], itemID: row[LibraryItemTable.table[itemID]], itemExternalID: row[LibraryItemTable.table[itemExternalID]])
+            return LibraryItem(id: row[LibraryItemTable.table[id]], externalID: row[LibraryItemTable.table[externalID]], librarySectionID: row[LibraryItemTable.table[librarySectionID]], librarySectionExternalID: row[LibraryItemTable.table[librarySectionExternalID]], position: row[LibraryItemTable.table[position]], titleHTML: row[LibraryItemTable.table[titleHTML]], obsolete: row[LibraryItemTable.table[obsolete]], itemID: row[LibraryItemTable.table[itemID]], itemExternalID: row[LibraryItemTable.table[itemExternalID]])
         }
         
     }

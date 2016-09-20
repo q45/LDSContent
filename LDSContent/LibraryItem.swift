@@ -29,18 +29,18 @@ public struct LibraryItem: LibraryNode, Equatable, Hashable {
     public let librarySectionID: Int64?
     public let librarySectionExternalID: String?
     public let position: Int
-    public let title: String
+    public let titleHTML: String
     public let obsolete: Bool
     public let itemID: Int64
     public let itemExternalID: String
     
-    public init(id: Int64, externalID: String, librarySectionID: Int64?, librarySectionExternalID: String?, position: Int, title: String, obsolete: Bool, itemID: Int64, itemExternalID: String) {
+    public init(id: Int64, externalID: String, librarySectionID: Int64?, librarySectionExternalID: String?, position: Int, titleHTML: String, obsolete: Bool, itemID: Int64, itemExternalID: String) {
         self.id = id
         self.externalID = externalID
         self.librarySectionID = librarySectionID
         self.librarySectionExternalID = librarySectionExternalID
         self.position = position
-        self.title = title
+        self.titleHTML = titleHTML
         self.obsolete = obsolete
         self.itemID = itemID
         self.itemExternalID = itemExternalID
@@ -57,7 +57,7 @@ public func == (lhs: LibraryItem, rhs: LibraryItem) -> Bool {
         lhs.librarySectionID == rhs.librarySectionID &&
         lhs.librarySectionExternalID == rhs.librarySectionExternalID &&
         lhs.position == rhs.position &&
-        lhs.title == rhs.title &&
+        lhs.titleHTML == rhs.titleHTML &&
         lhs.obsolete == rhs.obsolete &&
         lhs.itemID == rhs.itemID &&
         lhs.itemExternalID == rhs.itemExternalID

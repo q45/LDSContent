@@ -88,7 +88,7 @@ class MutableCatalogTests: XCTestCase {
     }
     
     func testLibraryCollection() {
-        let libraryCollection = LibraryCollection(id: 1, externalID: "1", librarySectionID: nil, librarySectionExternalID: nil, position: 1, title: "collection", coverRenditions: [ImageRendition(size: CGSize(width: 10, height: 10), url: NSURL(string: "https://example.org/example.png")!)], type: .Default)
+        let libraryCollection = LibraryCollection(id: 1, externalID: "1", librarySectionID: nil, librarySectionExternalID: nil, position: 1, titleHTML: "collection", coverRenditions: [ImageRendition(size: CGSize(width: 10, height: 10), url: NSURL(string: "https://example.org/example.png")!)], type: .Default)
         
         XCTAssertNoThrow(try catalog.addOrUpdateLibraryCollection(libraryCollection))
         XCTAssertEqual(catalog.libraryCollectionWithID(1), libraryCollection)
@@ -102,7 +102,7 @@ class MutableCatalogTests: XCTestCase {
     }
     
     func testLibraryItem() {
-        let libraryItem = LibraryItem(id: 1, externalID: "1", librarySectionID: nil, librarySectionExternalID: nil, position: 1, title: "item", obsolete: false, itemID: 1, itemExternalID: "1")
+        let libraryItem = LibraryItem(id: 1, externalID: "1", librarySectionID: nil, librarySectionExternalID: nil, position: 1, titleHTML: "item", obsolete: false, itemID: 1, itemExternalID: "1")
         
         XCTAssertNoThrow(try catalog.addOrUpdateLibraryItem(libraryItem))
         XCTAssertEqual(catalog.libraryItemWithID(1), libraryItem)
