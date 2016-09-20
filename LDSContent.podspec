@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "LDSContent"
-  s.version      = "1.1.2"
+  s.version      = "1.1.3"
   s.summary      = "Swift client library for LDS content."
   s.author       = 'Hilton Campbell', 'Stephan Heilner', 'Nick Shelley'
   s.homepage     = "https://github.com/CrossWaterBridge/LDSContent"

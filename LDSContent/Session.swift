@@ -78,8 +78,8 @@ class Session: NSObject {
         operationQueue.addOperation(group)
     }
     
-    func downloadItemPackage(externalID externalID: String, version: Int, priority: InstallPriority = .Default, progress: (amount: Float) -> Void, completion: (DownloadItemPackageResult) -> Void) {
-        let operation = DownloadItemPackageOperation(session: self, externalID: externalID, version: version, progress: progress, completion: completion)
+    func downloadItemPackage(baseURL baseURL: NSURL, externalID: String, version: Int, priority: InstallPriority = .Default, progress: (amount: Float) -> Void, completion: (DownloadItemPackageResult) -> Void) {
+        let operation = DownloadItemPackageOperation(session: self, baseURL: baseURL, externalID: externalID, version: version, progress: progress, completion: completion)
         if case priority = InstallPriority.High {
             operation.queuePriority = .VeryHigh
         }
@@ -123,8 +123,12 @@ extension Session: NSURLSessionDownloadDelegate {
     }
     
     func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL) {
-        if let completion = completionByTaskIdentifier[downloadTask.taskIdentifier] {
+        guard let completion = completionByTaskIdentifier[downloadTask.taskIdentifier], response = downloadTask.response as? NSHTTPURLResponse else { return }
+        
+        if response.statusCode == 200 {
             completion(result: .Success(location: location))
+        } else {
+            completion(result: .Error(error: Error.errorWithCode(.Unknown, failureReason: "Failed to download, response status code: \(response.statusCode)")))
         }
     }
 }

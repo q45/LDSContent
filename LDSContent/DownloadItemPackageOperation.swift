@@ -26,13 +26,15 @@ import Operations
 class DownloadItemPackageOperation: Operation {
     let session: Session
     let tempDirectoryURL: NSURL
+    let baseURL: NSURL
     let externalID: String
     let version: Int
     let progress: (amount: Float) -> Void
     
-    init(session: Session, externalID: String, version: Int, progress: (amount: Float) -> Void, completion: (DownloadItemPackageResult) -> Void) {
+    init(session: Session, baseURL: NSURL, externalID: String, version: Int, progress: (amount: Float) -> Void, completion: (DownloadItemPackageResult) -> Void) {
         self.session = session
         self.tempDirectoryURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
+        self.baseURL = baseURL
         self.externalID = externalID
         self.version = version
         self.progress = progress
@@ -53,7 +55,7 @@ class DownloadItemPackageOperation: Operation {
     }
     
     override func execute() {
-        downloadItemPackage(externalID: externalID, version: version, progress: progress) { result in
+        downloadItemPackage(baseURL: baseURL, externalID: externalID, version: version, progress: progress) { result in
             switch result {
             case let .Success(location):
                 do {
@@ -73,8 +75,8 @@ class DownloadItemPackageOperation: Operation {
         case Error(error: NSError)
     }
     
-    func downloadItemPackage(externalID externalID: String, version: Int, progress: (amount: Float) -> Void, completion: (DownloadResult) -> Void) {
-        let compressedItemPackageURL = session.baseURL.URLByAppendingPathComponent("v3/item-packages/\(externalID)/\(version).zip")
+    func downloadItemPackage(baseURL baseURL: NSURL, externalID: String, version: Int, progress: (amount: Float) -> Void, completion: (DownloadResult) -> Void) {
+        let compressedItemPackageURL = baseURL.URLByAppendingPathComponent("v3/item-packages/\(externalID)/\(version).zip")
         let request = NSMutableURLRequest(URL: compressedItemPackageURL)
         let task = session.urlSession.downloadTaskWithRequest(request)
         session.registerCallbacks(progress: progress, completion: { result in

@@ -156,7 +156,7 @@ extension ContentController {
                             switch result {
                             case let .Success(version):
                                 do {
-                                    try self.contentInventory.addOrUpdateCatalog(name, url: baseURL.path, version: version)
+                                    try self.contentInventory.addOrUpdateCatalog(name, url: baseURL.absoluteString, version: version)
                                 } catch let error as NSError {
                                     secureCatalogFailures.append((name: name, errors: [error]))
                                 }
@@ -298,8 +298,16 @@ extension ContentController {
                 try contentInventory.setErrored(false, itemID: item.id)
             } catch {}
             
+            
+            let baseURL: NSURL?
+            if let source = catalog?.sourceWithID(item.sourceID) where source.type != .Default, let urlString = self.contentInventory.catalogNamed(source.name)?.url {
+                baseURL = NSURL(string: urlString)
+            } else {
+                baseURL = nil
+            }
+            
             var previousAmount: Float = 0
-            session.downloadItemPackage(externalID: item.externalID, version: item.version, priority: priority, progress: { amount in
+            session.downloadItemPackage(baseURL: baseURL ?? session.baseURL, externalID: item.externalID, version: item.version, priority: priority, progress: { amount in
                 progress?(amount: amount)
                 guard previousAmount == 0 || amount - previousAmount > 0.05 else { return }
                 
