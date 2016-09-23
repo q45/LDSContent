@@ -120,6 +120,9 @@ extension ContentController {
             }
         }
         
+        // This variable is used to see if there were any catalog changes
+        let catalogPathBeforeMerge = self.mergedCatalogPath
+        
         session.updateDefaultCatalog(destination: { version in self.locationForCatalog(ContentController.defaultCatalogName, version: version) }) { result in
             switch result {
             case let .Success(version):
@@ -135,11 +138,13 @@ extension ContentController {
                     do {
                         let catalog = try self.mergeCatalogs()
                         if secureCatalogFailures.isEmpty {
-                            self.catalogUpdateObservers.notify(catalog)
                             completion(.Success(catalog: catalog))
                         } else {
-                            self.catalogUpdateObservers.notify(catalog)
                             completion(.PartialSuccess(catalog: catalog, secureCatalogFailures: secureCatalogFailures))
+                        }
+                        // Check to see if the catalogPath changed after merge
+                        if self.mergedCatalogPath != catalogPathBeforeMerge {
+                            self.catalogUpdateObservers.notify(catalog)
                         }
                     } catch {
                         completion(.Error(errors: [error]))
