@@ -191,11 +191,11 @@ extension Catalog {
         static let obsolete = Expression<Bool>("is_obsolete")
         
         static func fromRow(row: Row) -> Item {
-            return Item(id: row[id], externalID: row[externalID], languageID: row[languageID], sourceID: row[sourceID], platform: Platform(rawValue: row[platformID]) ?? .All, uri: row[uri], title: row[title], itemCoverRenditions: (row[itemCoverRenditions] ?? "").toImageRenditions() ?? [], itemCategoryID: row[itemCategoryID], version: row[version], obsolete: row[obsolete])
+            return Item(id: row[id], externalID: row[externalID], languageID: row[languageID], sourceID: row[sourceID], platform: Platform(rawValue: row[platformID]) ?? .All, uri: row[uri], title: row[title], itemCoverRenditions: row[itemCoverRenditions].flatMap { $0.toImageRenditions() }, itemCategoryID: row[itemCategoryID], version: row[version], obsolete: row[obsolete])
         }
         
         static func fromNamespacedRow(row: Row) -> Item {
-            return Item(id: row[ItemTable.table[id]], externalID: row[ItemTable.table[externalID]], languageID: row[ItemTable.table[languageID]], sourceID: row[ItemTable.table[sourceID]], platform: Platform(rawValue: row[ItemTable.table[platformID]]) ?? .All, uri: row[ItemTable.table[uri]], title: row[ItemTable.table[title]], itemCoverRenditions: (row[ItemTable.table[itemCoverRenditions]] ?? "").toImageRenditions() ?? [], itemCategoryID: row[ItemTable.table[itemCategoryID]], version: row[ItemTable.table[version]], obsolete: row[ItemTable.table[obsolete]])
+            return Item(id: row[ItemTable.table[id]], externalID: row[ItemTable.table[externalID]], languageID: row[ItemTable.table[languageID]], sourceID: row[ItemTable.table[sourceID]], platform: Platform(rawValue: row[ItemTable.table[platformID]]) ?? .All, uri: row[ItemTable.table[uri]], title: row[ItemTable.table[title]], itemCoverRenditions: row[ItemTable.table[itemCoverRenditions]].flatMap { $0.toImageRenditions() }, itemCategoryID: row[ItemTable.table[itemCategoryID]], version: row[ItemTable.table[version]], obsolete: row[ItemTable.table[obsolete]])
         }
         
     }
@@ -431,11 +431,11 @@ extension Catalog {
         static let typeID = Expression<Int>("type_id")
         
         static func fromRow(row: Row) -> LibraryCollection {
-            return LibraryCollection(id: row[id], externalID: row[externalID], librarySectionID: row[librarySectionID], librarySectionExternalID: row[librarySectionExternalID], position: row[position], titleHTML: row[titleHTML], coverRenditions: (row[coverRenditions] ?? "").toImageRenditions() ?? [], type: LibraryCollectionType(rawValue: row[typeID]) ?? .Default)
+            return LibraryCollection(id: row[id], externalID: row[externalID], librarySectionID: row[librarySectionID], librarySectionExternalID: row[librarySectionExternalID], position: row[position], titleHTML: row[titleHTML], coverRenditions: row[coverRenditions].flatMap { $0.toImageRenditions() }, type: LibraryCollectionType(rawValue: row[typeID]) ?? .Default)
         }
         
         static func fromNamespacedRow(row: Row) -> LibraryCollection {
-            return LibraryCollection(id: row[LibraryCollectionTable.table[id]], externalID: row[LibraryCollectionTable.table[externalID]], librarySectionID: row[LibraryCollectionTable.table[librarySectionID]], librarySectionExternalID: row[LibraryCollectionTable.table[librarySectionExternalID]], position: row[LibraryCollectionTable.table[position]], titleHTML: row[LibraryCollectionTable.table[titleHTML]], coverRenditions: (row[LibraryCollectionTable.table[coverRenditions]] ?? "").toImageRenditions() ?? [], type: LibraryCollectionType(rawValue: row[LibraryCollectionTable.table[typeID]]) ?? .Default)
+            return LibraryCollection(id: row[LibraryCollectionTable.table[id]], externalID: row[LibraryCollectionTable.table[externalID]], librarySectionID: row[LibraryCollectionTable.table[librarySectionID]], librarySectionExternalID: row[LibraryCollectionTable.table[librarySectionExternalID]], position: row[LibraryCollectionTable.table[position]], titleHTML: row[LibraryCollectionTable.table[titleHTML]], coverRenditions: row[LibraryCollectionTable.table[coverRenditions]].flatMap { $0.toImageRenditions() }, type: LibraryCollectionType(rawValue: row[LibraryCollectionTable.table[typeID]]) ?? .Default)
         }
         
     }

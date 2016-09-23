@@ -207,7 +207,7 @@ extension MutableItemPackage {
         return RelatedVideoItemSource(id: id, mediaURL: mediaURL, type: type, size: size, fileSize: fileSize, relatedVideoItemID: relatedVideoItemID)
     }
     
-    public func addNavCollectionWithNavSectionID(navSectionID: Int64?, position: Int, imageRenditions: [ImageRendition], titleHTML: String, subtitle: String?, uri: String) throws -> NavCollection {
+    public func addNavCollectionWithNavSectionID(navSectionID: Int64?, position: Int, imageRenditions: [ImageRendition]?, titleHTML: String, subtitle: String?, uri: String) throws -> NavCollection {
         let id = try db.run(NavCollectionTable.table.insert(
             NavCollectionTable.navSectionID <- navSectionID,
             NavCollectionTable.position <- position,
@@ -244,7 +244,7 @@ extension MutableItemPackage {
         return NavSection(id: id, navCollectionID: navCollectionID, position: position, indentLevel: indentLevel, title: title)
     }
     
-    public func addNavItemWithNavSectionID(navSectionID: Int64, position: Int, imageRenditions: [ImageRendition], titleHTML: String, subtitle: String?, preview: String?, uri: String, subitemID: Int64) throws -> NavItem {
+    public func addNavItemWithNavSectionID(navSectionID: Int64, position: Int, imageRenditions: [ImageRendition]?, titleHTML: String, subtitle: String?, preview: String?, uri: String, subitemID: Int64) throws -> NavItem {
         let id = try db.run(NavItemTable.table.insert(
             NavItemTable.navSectionID <- navSectionID,
             NavItemTable.position <- position,
@@ -270,7 +270,7 @@ extension MutableItemPackage {
         ))
     }
     
-    public func addAuthor(givenName givenName: String, familyName: String, imageRenditions: [ImageRendition]) throws -> Author {
+    public func addAuthor(givenName givenName: String, familyName: String, imageRenditions: [ImageRendition]?) throws -> Author {
         if let author = authorWithGivenName(givenName, familyName: familyName) {
             return author
         }

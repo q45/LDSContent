@@ -27,7 +27,7 @@ public struct NavItem: NavNode, Equatable {
     public let id: Int64
     public let navSectionID: Int64
     public let position: Int
-    public let imageRenditions: [ImageRendition]
+    public let imageRenditions: [ImageRendition]?
     public let titleHTML: String
     public let subtitle: String?
     public let preview: String?
@@ -40,7 +40,7 @@ public func == (lhs: NavItem, rhs: NavItem) -> Bool {
     return lhs.id == rhs.id &&
         lhs.navSectionID == rhs.navSectionID &&
         lhs.position == rhs.position &&
-        lhs.imageRenditions == rhs.imageRenditions &&
+        lhs.imageRenditions ?? [] == rhs.imageRenditions ?? [] &&
         lhs.titleHTML == rhs.titleHTML &&
         lhs.subtitle == rhs.subtitle &&
         lhs.preview == rhs.preview &&

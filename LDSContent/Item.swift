@@ -31,12 +31,12 @@ public struct Item: Equatable {
     public let platform: Platform
     public let uri: String
     public let title: String
-    public let itemCoverRenditions: [ImageRendition]
+    public let itemCoverRenditions: [ImageRendition]?
     public let itemCategoryID: Int64
     public let version: Int
     public let obsolete: Bool
     
-    public init(id: Int64, externalID: String, languageID: Int64, sourceID: Int64, platform: Platform, uri: String, title: String, itemCoverRenditions: [ImageRendition], itemCategoryID: Int64, version: Int, obsolete: Bool) {
+    public init(id: Int64, externalID: String, languageID: Int64, sourceID: Int64, platform: Platform, uri: String, title: String, itemCoverRenditions: [ImageRendition]?, itemCategoryID: Int64, version: Int, obsolete: Bool) {
         self.id = id
         self.externalID = externalID
         self.languageID = languageID
@@ -60,7 +60,7 @@ public func == (lhs: Item, rhs: Item) -> Bool {
         lhs.platform == rhs.platform &&
         lhs.uri == rhs.uri &&
         lhs.title == rhs.title &&
-        lhs.itemCoverRenditions == rhs.itemCoverRenditions &&
+        lhs.itemCoverRenditions ?? [] == rhs.itemCoverRenditions ?? [] &&
         lhs.itemCategoryID == rhs.itemCategoryID &&
         lhs.version == rhs.version &&
         lhs.obsolete == rhs.obsolete

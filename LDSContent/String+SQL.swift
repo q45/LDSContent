@@ -38,10 +38,8 @@ extension String {
         return result as String
     }
     
-    init?(_ imageRenditions: [ImageRendition]) {
-        if imageRenditions.isEmpty {
-            return nil
-        }
+    init?(_ imageRenditions: [ImageRendition]?) {
+        guard let imageRenditions = imageRenditions where !imageRenditions.isEmpty else { return nil }
         
         var components = [String]()
         for imageRendition in imageRenditions {

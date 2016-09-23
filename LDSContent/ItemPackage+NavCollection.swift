@@ -37,7 +37,7 @@ extension ItemPackage {
         static let uri = Expression<String>("uri")
         
         static func fromRow(row: Row) -> NavCollection {
-            return NavCollection(id: row[id], navSectionID: row[navSectionID], position: row[position], imageRenditions: (row[imageRenditions] ?? "").toImageRenditions() ?? [], titleHTML: row[titleHTML], subtitle: row[subtitle], uri: row[uri])
+            return NavCollection(id: row[id], navSectionID: row[navSectionID], position: row[position], imageRenditions: row[imageRenditions].flatMap { $0.toImageRenditions() }, titleHTML: row[titleHTML], subtitle: row[subtitle], uri: row[uri])
         }
         
     }

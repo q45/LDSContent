@@ -38,7 +38,7 @@ class LibraryCollectionViewController: UIViewController {
         
         automaticallyAdjustsScrollViewInsets = false
         
-        title = libraryCollection.title
+        title = libraryCollection.titleHTML
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -142,15 +142,15 @@ extension LibraryCollectionViewController: UITableViewDataSource {
         let libraryNode = sections[indexPath.section].libraryNodes[indexPath.row]
         switch libraryNode {
         case let libraryCollection as LibraryCollection:
-            cell.textLabel?.text = libraryCollection.title
+            cell.textLabel?.text = libraryCollection.titleHTML
             cell.accessoryType = .DisclosureIndicator
         case let libraryItem as LibraryItem:
             if let itemPackage = contentController.itemPackageForItemWithID(libraryItem.itemID) {
-                cell.textLabel?.text = libraryItem.title
+                cell.textLabel?.text = libraryItem.titleHTML
                 cell.detailTextLabel?.text = "v\(itemPackage.schemaVersion).\(itemPackage.itemPackageVersion)"
                 cell.accessoryType = .DisclosureIndicator
             } else {
-                cell.textLabel?.text = libraryNode.title
+                cell.textLabel?.text = libraryNode.titleHTML
                 cell.detailTextLabel?.text = nil
                 cell.accessoryType = .None
             }

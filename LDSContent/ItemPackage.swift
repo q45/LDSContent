@@ -280,7 +280,7 @@ extension ItemPackage {
         static let subitemID = Expression<Int64>("subitem_id")
         
         static func fromRow(row: Row) -> NavItem {
-            return NavItem(id: row[id], navSectionID: row[navSectionID], position: row[position], imageRenditions: (row[imageRenditions] ?? "").toImageRenditions() ?? [], titleHTML: row[titleHTML], subtitle: row[subtitle], preview: row[preview], uri: row[uri], subitemID: row[subitemID])
+            return NavItem(id: row[id], navSectionID: row[navSectionID], position: row[position], imageRenditions: row[imageRenditions].flatMap { $0.toImageRenditions() }, titleHTML: row[titleHTML], subtitle: row[subtitle], preview: row[preview], uri: row[uri], subitemID: row[subitemID])
         }
         
     }
@@ -317,10 +317,10 @@ extension ItemPackage {
         static let id = Expression<Int64>("_id")
         static let givenName = Expression<String>("given_name")
         static let familyName = Expression<String>("family_name")
-        static let imageRenditions = Expression<String>("image_renditions")
+        static let imageRenditions = Expression<String?>("image_renditions")
         
         static func fromRow(row: Row) -> Author {
-            return Author(id: row[id], givenName: row[givenName], familyName: row[familyName], imageRenditions: (row[imageRenditions] ?? "").toImageRenditions() ?? [])
+            return Author(id: row[id], givenName: row[givenName], familyName: row[familyName], imageRenditions: row[imageRenditions].flatMap { $0.toImageRenditions() })
         }
     }
     
