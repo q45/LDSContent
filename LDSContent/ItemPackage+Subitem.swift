@@ -112,6 +112,14 @@ public extension ItemPackage {
         return db.pluck(SubitemTable.table.select(SubitemTable.uri).filter(SubitemTable.id == subitemID)).map { $0[SubitemTable.uri] }
     }
     
+    public func URIsOfSubitemsWithIDs(ids: [Int64]) -> [String] {
+        do {
+            return try db.prepare(SubitemTable.table.select(SubitemTable.uri).filter(ids.contains(SubitemTable.id))).map { $0[SubitemTable.uri] }
+        } catch {
+            return []
+        }
+    }
+    
     public func allDocIDsAndVersions() -> [(docID: String, docVersion: Int)] {
         do {
             return try db.prepare(SubitemTable.table.select(SubitemTable.docID, SubitemTable.docVersion)).map { (docID: $0[SubitemTable.docID], docVersion: $0[SubitemTable.docVersion]) }

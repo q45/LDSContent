@@ -182,6 +182,14 @@ class ItemPackageTests: XCTestCase {
         XCTAssertEqual(paragraphMetadata3, paragraphMetadata)
     }
     
+    func testsubitemURIsFromSubitemIDs() {
+        let subitems = itemPackage.subitems()
+        let subitemIDs = subitems.map { $0.id }
+        
+        let actualSubitemURIs = Set(itemPackage.URIsOfSubitemsWithIDs(subitemIDs))
+        XCTAssertTrue(actualSubitemURIs == Set(subitems.map({ $0.uri })))
+    }
+    
 }
 
 extension ItemPackageTests {
