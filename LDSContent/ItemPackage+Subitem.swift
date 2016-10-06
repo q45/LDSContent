@@ -114,15 +114,15 @@ public extension ItemPackage {
     
     public func URIsOfSubitemsWithIDs(ids: [Int64]) -> [String] {
         do {
-            return try db.prepare(SubitemTable.table.select(SubitemTable.uri).filter(ids.contains(SubitemTable.id))).map { $0[SubitemTable.uri] }
+            return try db.prepare(SubitemTable.table.select(SubitemTable.uri).filter(ids.contains(SubitemTable.id)).order(SubitemTable.position)).map { $0[SubitemTable.uri] }
         } catch {
             return []
         }
     }
     
-    public func allDocIDsAndVersions() -> [(docID: String, docVersion: Int)] {
+    public func orderedSubitemURIsWithURIs(uris: [String]) -> [String] {
         do {
-            return try db.prepare(SubitemTable.table.select(SubitemTable.docID, SubitemTable.docVersion)).map { (docID: $0[SubitemTable.docID], docVersion: $0[SubitemTable.docVersion]) }
+            return try db.prepare(SubitemTable.table.select(SubitemTable.uri).filter(uris.contains(SubitemTable.uri)).order(SubitemTable.position)).map { $0[SubitemTable.uri] }
         } catch {
             return []
         }

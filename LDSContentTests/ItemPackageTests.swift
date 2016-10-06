@@ -182,12 +182,21 @@ class ItemPackageTests: XCTestCase {
         XCTAssertEqual(paragraphMetadata3, paragraphMetadata)
     }
     
-    func testsubitemURIsFromSubitemIDs() {
+    func testSubitemURIsFromSubitemIDs() {
         let subitems = itemPackage.subitems()
         let subitemIDs = subitems.map { $0.id }
         
         let actualSubitemURIs = Set(itemPackage.URIsOfSubitemsWithIDs(subitemIDs))
         XCTAssertTrue(actualSubitemURIs == Set(subitems.map({ $0.uri })))
+    }
+    
+    func testOrderedSubitemURIsWithURIs() {
+        let orderedURIs = itemPackage.subitems().map { $0.uri }
+        let unorderedURIs = orderedURIs.shuffle()
+        
+        XCTAssertFalse(orderedURIs == unorderedURIs)
+        
+        XCTAssertTrue(orderedURIs == itemPackage.orderedSubitemURIsWithURIs(unorderedURIs))
     }
     
 }
