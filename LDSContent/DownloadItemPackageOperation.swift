@@ -81,6 +81,7 @@ class DownloadItemPackageOperation: Operation {
         let task = session.urlSession.downloadTaskWithRequest(request)
         session.registerCallbacks(progress: progress, completion: { result in
             self.session.deregisterCallbacksForTaskIdentifier(task.taskIdentifier)
+            self.session.networkActivityObservers.notify(.Stop)
             
             switch result {
             case let .Error(error: error):
@@ -89,6 +90,7 @@ class DownloadItemPackageOperation: Operation {
                 completion(.Success(location: location))
             }
         }, forTaskIdentifier: task.taskIdentifier)
+        session.networkActivityObservers.notify(.Start)
         task.resume()
     }
     

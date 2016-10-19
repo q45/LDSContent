@@ -124,6 +124,7 @@ class DownloadCatalogOperation: Operation, AutomaticInjectionOperationType {
         let task = session.urlSession.downloadTaskWithRequest(request)
         session.registerCallbacks(progress: progress, completion: { result in
             self.session.deregisterCallbacksForTaskIdentifier(task.taskIdentifier)
+            self.session.networkActivityObservers.notify(.Stop)
             
             switch result {
             case let .Error(error: error):
@@ -132,6 +133,7 @@ class DownloadCatalogOperation: Operation, AutomaticInjectionOperationType {
                 completion(.Success(location: location))
             }
         }, forTaskIdentifier: task.taskIdentifier)
+        session.networkActivityObservers.notify(.Start)
         task.resume()
     }
     

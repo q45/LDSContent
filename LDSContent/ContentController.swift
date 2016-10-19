@@ -42,6 +42,12 @@ public class ContentController {
     public let itemPackageInstallObservers = ObserverSet<Item>()
     public let itemPackageUninstallObservers = ObserverSet<Item>()
     public let itemPackageInstallProgressObservers = ObserverSet<(item: Item, progress: Float)>()
+    public let networkActivityObservers = ObserverSet<NetworkActivity>()
+    
+    public enum NetworkActivity {
+        case Start
+        case Stop
+    }
     
     /// Constructs a controller for content at `location` with baseURL.
     public init(location: NSURL, baseURL: NSURL) throws {
@@ -53,6 +59,7 @@ public class ContentController {
         } catch {
             throw error
         }
+        session.networkActivityObservers.add(self, self.dynamicType.notifyNetworkActivity)
     }
     
     /// The currently installed catalog.
@@ -101,6 +108,11 @@ public class ContentController {
             } catch {}
         }
     }
+    
+    private func notifyNetworkActivity(networkActivity: NetworkActivity) {
+        networkActivityObservers.notify(networkActivity)
+    }
+    
 }
 
 // MARK: - Catalog

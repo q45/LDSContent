@@ -22,8 +22,12 @@
 
 import Foundation
 import Operations
+import Swiftification
 
 class Session: NSObject {
+    
+    let networkActivityObservers = ObserverSet<ContentController.NetworkActivity>()
+    
     enum DownloadResult {
         case Success(location: NSURL)
         case Error(error: NSError)

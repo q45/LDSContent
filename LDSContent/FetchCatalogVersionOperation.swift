@@ -42,6 +42,8 @@ class FetchCatalogVersionOperation: Operation, ResultOperationType {
         let request = NSMutableURLRequest(URL: indexURL)
         
         let task = session.urlSession.dataTaskWithRequest(request) { data, response, error in
+            self.session.networkActivityObservers.notify(.Stop)
+            
             if let error = error {
                 self.finish(error)
                 return
@@ -69,6 +71,7 @@ class FetchCatalogVersionOperation: Operation, ResultOperationType {
             
             self.finish()
         }
+        session.networkActivityObservers.notify(.Start)
         task.resume()
     }
     
