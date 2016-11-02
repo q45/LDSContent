@@ -32,7 +32,7 @@ public class ItemPackage {
     
     public init(url: NSURL, readonly: Bool = true) throws {
         do {
-            db = try Connection(url.URLByAppendingPathComponent("package.sqlite").path ?? "", readonly: readonly)
+            db = try Connection(url.URLByAppendingPathComponent("package.sqlite")?.path ?? "", readonly: readonly)
             db.busyTimeout = 5
             self.url = url
         } catch {
@@ -99,7 +99,7 @@ public class ItemPackage {
         }
     }
     
-    public func scriptureGotoURL() -> NSURL {
+    public func scriptureGotoURL() -> NSURL? {
         return url.URLByAppendingPathComponent("scriptureGoto.plist")
     }
     

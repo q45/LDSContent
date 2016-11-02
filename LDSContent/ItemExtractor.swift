@@ -43,8 +43,8 @@ struct ItemExtractor {
         let uncompressedPackageURL = destination.URLByAppendingPathComponent("package.sqlite")
         
         var error: NSError?
-        if !uncompressedPackageURL.checkResourceIsReachableAndReturnError(&error), let error = error {
-            throw error
+        if uncompressedPackageURL?.checkResourceIsReachableAndReturnError(&error) != true {
+            throw error ?? Error.errorWithCode(.Unknown, failureReason: "Resource is not reachable")
         }
     }
     

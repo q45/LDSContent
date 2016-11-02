@@ -34,7 +34,7 @@ class DownloadCatalogTests: XCTestCase {
             switch result {
             case .Success:
                 do {
-                    let catalog = try Catalog(path: catalogURL.path!)
+                    let catalog = try Catalog(path: catalogURL!.path!)
                     XCTAssertGreaterThan(catalog.catalogVersion, 0)
                 } catch {
                     XCTFail("Failed to connect to catalog: \(error)")
@@ -52,7 +52,7 @@ class DownloadCatalogTests: XCTestCase {
                     XCTFail("Should be already current.")
                 case .AlreadyCurrent:
                     do {
-                        let catalog = try Catalog(path: catalogURL.path!)
+                        let catalog = try Catalog(path: catalogURL!.path!)
                         XCTAssertGreaterThan(catalog.catalogVersion, 0)
                     } catch {
                         XCTFail("Failed to connect to catalog: \(error)")

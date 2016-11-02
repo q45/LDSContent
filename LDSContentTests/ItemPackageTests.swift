@@ -208,8 +208,8 @@ extension ItemPackageTests {
         
         do {
             let tempDirectoryURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
-            try NSFileManager.defaultManager().createDirectoryAtURL(tempDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-            contentController = try ContentController(location: tempDirectoryURL, baseURL: NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!)
+            try NSFileManager.defaultManager().createDirectoryAtURL(tempDirectoryURL!, withIntermediateDirectories: true, attributes: nil)
+            contentController = try ContentController(location: tempDirectoryURL!, baseURL: NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!)
         } catch {
             NSLog("Failed to create content controller: %@", "\(error)")
         }

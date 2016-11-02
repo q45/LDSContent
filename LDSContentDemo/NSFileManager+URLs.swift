@@ -29,7 +29,7 @@ extension NSFileManager {
     }
     
     static var privateDocumentsURL: NSURL {
-        return NSFileManager.defaultManager().URLsForDirectory(.LibraryDirectory, inDomains: .UserDomainMask).last!.URLByAppendingPathComponent("Private Documents")
+        return NSFileManager.defaultManager().URLsForDirectory(.LibraryDirectory, inDomains: .UserDomainMask).last!.URLByAppendingPathComponent("Private Documents")!
     }
     
 }

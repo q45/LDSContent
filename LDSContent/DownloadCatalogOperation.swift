@@ -26,6 +26,8 @@ import SSZipArchive
 
 enum DownloadCatalogOperationError: ErrorType {
     case MissingCatalogVersionError(String)
+    case DestinationURLInvalidError(String)
+    case TempDownloadURLInvalidError(String)
 }
 
 class DownloadCatalogOperation: Operation, AutomaticInjectionOperationType {
@@ -36,11 +38,11 @@ class DownloadCatalogOperation: Operation, AutomaticInjectionOperationType {
     let catalogName: String
     let session: Session
     let baseURL: NSURL
-    let destination: (version: Int) -> NSURL
+    let destination: (version: Int) -> NSURL?
     let progress: (amount: Float) -> Void
-    let tempDirectoryURL: NSURL
+    let tempDirectoryURL: NSURL?
     
-    init(session: Session, catalogName: String, baseURL: NSURL, destination: (version: Int) -> NSURL, progress: (amount: Float) -> Void, completion: (DownloadCatalogResult) -> Void) {
+    init(session: Session, catalogName: String, baseURL: NSURL, destination: (version: Int) -> NSURL?, progress: (amount: Float) -> Void, completion: (DownloadCatalogResult) -> Void) {
         self.session = session
         self.catalogName = catalogName
         self.baseURL = baseURL
@@ -57,12 +59,18 @@ class DownloadCatalogOperation: Operation, AutomaticInjectionOperationType {
                     self.result = result
                     completion(result)
                 } else {
-                    let destinationURL = self.destination(version: version)
+                    
                     do {
+                        guard let destinationURL = self.destination(version: version) else {
+                            throw DownloadCatalogOperationError.DestinationURLInvalidError("Catalog download destination URL is invalid")
+                        }
                         if let directory = destinationURL.URLByDeletingLastPathComponent {
                             try NSFileManager.defaultManager().createDirectoryAtURL(directory, withIntermediateDirectories: true, attributes: nil)
                         }
-                        try NSFileManager.defaultManager().moveItemAtURL(self.tempDirectoryURL.URLByAppendingPathComponent("Catalog.sqlite"), toURL: destinationURL)
+                        guard let tempURL = self.tempDirectoryURL?.URLByAppendingPathComponent("Catalog.sqlite") else {
+                            throw DownloadCatalogOperationError.TempDownloadURLInvalidError("Temp catalog.sqlite URL is invalid")
+                        }
+                        try NSFileManager.defaultManager().moveItemAtURL(tempURL, toURL: destinationURL)
                     } catch {}
                     let result = DownloadCatalogResult.Success(version: version)
                     self.result = result
@@ -82,7 +90,11 @@ class DownloadCatalogOperation: Operation, AutomaticInjectionOperationType {
             return
         }
         
-        let destinationURL = destination(version: catalogVersion)
+        guard let destinationURL = destination(version: catalogVersion) else {
+            finish(DownloadCatalogOperationError.DestinationURLInvalidError("Catalog download destination URL is invalid"))
+            return
+        }
+        
         if (try? Catalog(path: destinationURL.path)) != nil {
             isCurrent = true
             finish()
@@ -119,7 +131,11 @@ class DownloadCatalogOperation: Operation, AutomaticInjectionOperationType {
     }
     
     func downloadCatalog(baseURL baseURL: NSURL, catalogVersion: Int, progress: (amount: Float) -> Void, completion: (DownloadResult) -> Void) {
-        let compressedCatalogURL = baseURL.URLByAppendingPathComponent("v3/catalogs/\(catalogVersion).zip")
+        guard let compressedCatalogURL = baseURL.URLByAppendingPathComponent("v3/catalogs/\(catalogVersion).zip") else {
+            completion(.Error(error: Error.errorWithCode(.Unknown, failureReason: "Catalog URL is not a URL")))
+            return
+        }
+        
         let request = NSMutableURLRequest(URL: compressedCatalogURL)
         let task = session.urlSession.downloadTaskWithRequest(request)
         session.registerCallbacks(progress: progress, completion: { result in
@@ -147,6 +163,10 @@ class DownloadCatalogOperation: Operation, AutomaticInjectionOperationType {
             completion(.Error(error: Error.errorWithCode(.Unknown, failureReason: "Failed to get compressed catalog path")))
             return
         }
+        guard let tempDirectoryURL = tempDirectoryURL else {
+            completion(.Error(error: Error.errorWithCode(.Unknown, failureReason: "Failed to get temporary catalog directory")))
+            return
+        }
         
         do {
             try NSFileManager.defaultManager().createDirectoryAtURL(tempDirectoryURL, withIntermediateDirectories: true, attributes: nil)
@@ -168,8 +188,8 @@ class DownloadCatalogOperation: Operation, AutomaticInjectionOperationType {
         let uncompressedCatalogURL = tempDirectoryURL.URLByAppendingPathComponent("Catalog.sqlite")
         
         var error: NSError?
-        if !uncompressedCatalogURL.checkResourceIsReachableAndReturnError(&error), let error = error {
-            completion(.Error(error: error))
+        if uncompressedCatalogURL?.checkResourceIsReachableAndReturnError(&error) != true {
+            completion(.Error(error: error ?? Error.errorWithCode(.Unknown, failureReason: "Resource is not reachable")))
             return
         }
         

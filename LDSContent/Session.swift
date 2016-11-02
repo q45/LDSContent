@@ -53,7 +53,7 @@ class Session: NSObject {
         super.init()
     }
     
-    private func catalogOperationsForCatalogs(catalogs: [(name: String, baseURL: NSURL, destination: (version: Int) -> NSURL)], progress: (amount: Float) -> Void = { _ in }, completion: (DownloadCatalogResult) -> Void) -> [Operation] {
+    private func catalogOperationsForCatalogs(catalogs: [(name: String, baseURL: NSURL, destination: (version: Int) -> NSURL?)], progress: (amount: Float) -> Void = { _ in }, completion: (DownloadCatalogResult) -> Void) -> [Operation] {
         return catalogs.flatMap { (name, baseURL, destination) -> [Operation] in
             let versionOperation = FetchCatalogVersionOperation(session: self, baseURL: baseURL)
             let downloadOperation = DownloadCatalogOperation(session: self, catalogName: name, baseURL: baseURL, destination: destination, progress: progress, completion: completion)
@@ -62,12 +62,12 @@ class Session: NSObject {
         }
     }
     
-    func updateDefaultCatalog(destination destination: (version: Int) -> NSURL, progress: (amount: Float) -> Void = { _ in }, completion: (DownloadCatalogResult) -> Void) {
+    func updateDefaultCatalog(destination destination: (version: Int) -> NSURL?, progress: (amount: Float) -> Void = { _ in }, completion: (DownloadCatalogResult) -> Void) {
         let operations = catalogOperationsForCatalogs([(ContentController.defaultCatalogName, baseURL, destination)], progress: progress, completion: completion)
         operationQueue.addOperations(operations)
     }
     
-    func updateSecureCatalogs(secureCatalogs: [(name: String, baseURL: NSURL, destination: (version: Int) -> NSURL)], progress: (amount: Float) -> Void = { _ in }, completion: ([(name: String, baseURL: NSURL, result: DownloadCatalogResult)]) -> Void) {
+    func updateSecureCatalogs(secureCatalogs: [(name: String, baseURL: NSURL, destination: (version: Int) -> NSURL?)], progress: (amount: Float) -> Void = { _ in }, completion: ([(name: String, baseURL: NSURL, result: DownloadCatalogResult)]) -> Void) {
         let operations = catalogOperationsForCatalogs(secureCatalogs, progress: progress, completion: { _ in })
         let group = GroupOperation(operations: operations)
         group.addObserver(DidFinishObserver { operation, errors in

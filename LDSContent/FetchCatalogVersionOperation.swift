@@ -38,7 +38,10 @@ class FetchCatalogVersionOperation: Operation, ResultOperationType {
     }
     
     override func execute() {
-        let indexURL = baseURL.URLByAppendingPathComponent("v3/index.json")
+        guard let indexURL = baseURL.URLByAppendingPathComponent("v3/index.json") else {
+            finish(Error.errorWithCode(.Unknown, failureReason: "index.json file url is invalid"))
+            return
+        }
         let request = NSMutableURLRequest(URL: indexURL)
         
         let task = session.urlSession.dataTaskWithRequest(request) { data, response, error in

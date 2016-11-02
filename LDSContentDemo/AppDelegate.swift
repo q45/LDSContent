@@ -29,9 +29,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
     
-    lazy var contentController: ContentController! = {
-        let location = NSFileManager.privateDocumentsURL.URLByAppendingPathComponent("Content")
-        let baseURL = NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!
+    lazy var contentController: ContentController? = {
+        guard let location = NSFileManager.privateDocumentsURL.URLByAppendingPathComponent("Content"), baseURL = NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/") else { return nil }
         do {
             try NSFileManager.defaultManager().createDirectoryAtURL(location, withIntermediateDirectories: true, attributes: nil)
         } catch {}
@@ -46,13 +45,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             try NSFileManager.privateDocumentsURL.setResourceValue(true, forKey: NSURLIsExcludedFromBackupKey)
         } catch {}
         
-        
-        let viewController = LanguagesViewController(contentController: contentController)
-        
-        let navigationController = UINavigationController(rootViewController: viewController)
-        
         window = UIWindow(frame: UIScreen.mainScreen().bounds)
-        window?.rootViewController = navigationController
+        
+        if let contentController = contentController {
+            let viewController = LanguagesViewController(contentController: contentController)
+            let navigationController = UINavigationController(rootViewController: viewController)
+            window?.rootViewController = navigationController
+        }
+        
         window?.makeKeyAndVisible()
         
         return true
@@ -61,14 +61,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidBecomeActive(application: UIApplication) {
         NSLog("Updating catalog")
         
-        let showUI = (contentController.catalog == nil)
+        let showUI = contentController?.catalog == nil
         if showUI {
             SVProgressHUD.setDefaultMaskType(.Clear)
             SVProgressHUD.showProgress(0, status: "Installing catalog")
         }
         
         var previousAmount: Float = 0
-        contentController.updateCatalog(progress: { amount in
+        contentController?.updateCatalog(progress: { amount in
             guard previousAmount < amount - 0.1 else { return }
             previousAmount = amount
             

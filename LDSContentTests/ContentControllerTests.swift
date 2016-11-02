@@ -52,18 +52,18 @@ class ContentControllerTests: XCTestCase {
                 let extraURLs = [extraDefaultURL, extraMergedURL]
                 let data = "hi".dataUsingEncoding(NSUTF8StringEncoding)!
                 extraURLs.forEach { url in
-                    let directory = url.URLByDeletingLastPathComponent!
+                    let directory = url!.URLByDeletingLastPathComponent!
                     try! NSFileManager.defaultManager().createDirectoryAtURL(directory, withIntermediateDirectories: true, attributes: nil)
-                    try! data.writeToURL(url, options: [])
-                    XCTAssertNotNil(NSData(contentsOfURL: url))
+                    try! data.writeToURL(url!, options: [])
+                    XCTAssertNotNil(NSData(contentsOfURL: url!))
                     XCTAssertTrue(NSFileManager.defaultManager().fileExistsAtPath(directory.path!))
                 }
                 
                 contentController.updateCatalog { result in
                     if case .Success = result {
                         extraURLs.forEach { url in
-                            let directory = url.URLByDeletingLastPathComponent!
-                            XCTAssertNil(NSData(contentsOfURL: url))
+                            let directory = url!.URLByDeletingLastPathComponent!
+                            XCTAssertNil(NSData(contentsOfURL: url!))
                             XCTAssertFalse(NSFileManager.defaultManager().fileExistsAtPath(directory.path!))
                         }
                         
@@ -110,8 +110,8 @@ extension ContentControllerTests {
         
         do {
             let tempDirectoryURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
-            try NSFileManager.defaultManager().createDirectoryAtURL(tempDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-            ContentControllerTests.contentController = try ContentController(location: tempDirectoryURL, baseURL: NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!)
+            try NSFileManager.defaultManager().createDirectoryAtURL(tempDirectoryURL!, withIntermediateDirectories: true, attributes: nil)
+            ContentControllerTests.contentController = try ContentController(location: tempDirectoryURL!, baseURL: NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!)
         } catch {
             NSLog("Failed to create content controller: %@", "\(error)")
         }

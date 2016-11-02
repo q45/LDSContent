@@ -236,8 +236,8 @@ class MutableItemPacakgeTests: XCTestCase {
         super.setUp()
         
         do {
-            try NSFileManager.defaultManager().createDirectoryAtURL(tempPackageURL, withIntermediateDirectories: true, attributes: nil)
-            itemPackage = try MutableItemPackage(url: tempPackageURL, iso639_1Code: "en", iso639_3Code: "eng")
+            try NSFileManager.defaultManager().createDirectoryAtURL(tempPackageURL!, withIntermediateDirectories: true, attributes: nil)
+            itemPackage = try MutableItemPackage(url: tempPackageURL!, iso639_1Code: "en", iso639_3Code: "eng")
         } catch {
             itemPackage = nil
         }
@@ -246,7 +246,7 @@ class MutableItemPacakgeTests: XCTestCase {
     override func tearDown() {
         super.tearDown()
         
-        let _ = try? NSFileManager.defaultManager().removeItemAtURL(tempPackageURL)
+        let _ = try? NSFileManager.defaultManager().removeItemAtURL(tempPackageURL!)
     }
     
 }

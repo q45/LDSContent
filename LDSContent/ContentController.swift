@@ -55,7 +55,7 @@ public class ContentController {
         session = Session(baseURL: baseURL)
         
         do {
-            contentInventory = try ContentInventory(path: location.URLByAppendingPathComponent("Inventory.sqlite").path)
+            contentInventory = try ContentInventory(path: location.URLByAppendingPathComponent("Inventory.sqlite")?.path)
         } catch {
             throw error
         }
@@ -76,14 +76,14 @@ public class ContentController {
     public var defaultCatalogPath: String? {
         guard let version = contentInventory.catalogNamed(ContentController.defaultCatalogName)?.version else { return nil }
         
-        return locationForCatalog(ContentController.defaultCatalogName, version: version).path
+        return locationForCatalog(ContentController.defaultCatalogName, version: version)?.path
     }
     
     public var mergedCatalogPath: String? {
         let directoryName = contentInventory.installedCatalogs().sort { $0.name < $1.name }.reduce("") { $0 + $1.name + String($1.version) }
         guard !directoryName.isEmpty else { return nil }
         
-        return location.URLByAppendingPathComponent("MergedCatalogs/\(directoryName)/Catalog.sqlite").path
+        return location.URLByAppendingPathComponent("MergedCatalogs/\(directoryName)/Catalog.sqlite")?.path
     }
     
     /// Directly install catalog located at `path`
@@ -91,7 +91,7 @@ public class ContentController {
         guard let catalog = try? Catalog(path: path, readonly: true) else { return }
         
         let destinationURL = locationForCatalog(ContentController.defaultCatalogName, version: catalog.catalogVersion)
-        if let directory = destinationURL.URLByDeletingLastPathComponent, destinationPath = destinationURL.path {
+        if let directory = destinationURL?.URLByDeletingLastPathComponent, destinationPath = destinationURL?.path {
             try NSFileManager.defaultManager().createDirectoryAtURL(directory, withIntermediateDirectories: true, attributes: nil)
             try NSFileManager.defaultManager().copyItemAtPath(path, toPath: destinationPath)
             try contentInventory.addOrUpdateCatalog(ContentController.defaultCatalogName, url: nil, version: catalog.catalogVersion)
@@ -126,7 +126,11 @@ extension ContentController {
             let catalogsToDelete = contentInventory.installedCatalogs().filter { installedCatalog in !installedCatalog.isDefault() && !secureCatalogs.contains({ secureCatalog in secureCatalog.name == installedCatalog.name })}.map { $0.name }
             do {
                 try self.contentInventory.deleteCatalogsNamed(catalogsToDelete)
-                try catalogsToDelete.forEach { try NSFileManager.defaultManager().removeItemAtURL(location.URLByAppendingPathComponent("Catalogs/\($0)")) }
+                try catalogsToDelete.forEach {
+                    if let url = location.URLByAppendingPathComponent("Catalogs/\($0)") {
+                        try NSFileManager.defaultManager().removeItemAtURL(url)
+                    }
+                }
             } catch {
                 NSLog("Couldn't delete catalogs \(catalogsToDelete): \(error)")
             }
@@ -167,7 +171,9 @@ extension ContentController {
                 
                 // If default catalog update succeeds, attempt to update secure catalogs (if any)
                 if let secureCatalogs = secureCatalogs {
-                    self.session.updateSecureCatalogs(secureCatalogs.map { catalog in (catalog.name, catalog.baseURL, { version in self.locationForCatalog(catalog.name, version: version) }) }) { results in
+                    self.session.updateSecureCatalogs(secureCatalogs.map { catalog in (catalog.name, catalog.baseURL, { version in
+                        self.locationForCatalog(catalog.name, version: version)
+                    }) }) { results in
                         var secureCatalogFailures = [(name: String, errors: [ErrorType])]()
                         results.forEach { name, baseURL, result in
                             switch result {
@@ -203,18 +209,25 @@ extension ContentController {
             return existingCatalog
         }
         
-        let tempURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent("Catalog.sqlite")
-        let defaultLocation = locationForCatalog(ContentController.defaultCatalogName, version: defaultVersion)
+        guard let tempURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent("Catalog.sqlite") else {
+            throw Error.errorWithCode(.Unknown, failureReason: "Temp URL for catalog.sqlite is invalid")
+        }
+        
+        guard let defaultLocation = locationForCatalog(ContentController.defaultCatalogName, version: defaultVersion) else {
+            throw Error.errorWithCode(.Unknown, failureReason: "Default location for catalog is invalid")
+        }
+        
         do {
             try NSFileManager.defaultManager().removeItemAtURL(tempURL)
         } catch {}
+        
         try NSFileManager.defaultManager().copyItemAtURL(defaultLocation, toURL: tempURL)
         
         let installedCatalogs = contentInventory.installedCatalogs()
         let mutableCatalog = try MutableCatalog(path: tempURL.path)
         
         for catalogMetadata in installedCatalogs where !catalogMetadata.isDefault() {
-            guard let path = locationForCatalog(catalogMetadata.name, version: catalogMetadata.version).path else { continue }
+            guard let path = locationForCatalog(catalogMetadata.name, version: catalogMetadata.version)?.path else { continue }
             try mutableCatalog.insertDataFromCatalog(path, name: catalogMetadata.name)
         }
         let mergedURL = NSURL(fileURLWithPath: mergedPath)
@@ -226,12 +239,12 @@ extension ContentController {
         return try Catalog(path: mergedPath)
     }
     
-    private func locationForCatalog(name: String, version: Int) -> NSURL {
+    private func locationForCatalog(name: String, version: Int) -> NSURL? {
         return location.URLByAppendingPathComponent("Catalogs/\(name)/\(version)/Catalog.sqlite")
     }
     
     private func cleanupOldCatalogs() {
-        var currentCatalogVersionURLs = contentInventory.installedCatalogs().flatMap { locationForCatalog($0.name, version: $0.version).URLByDeletingLastPathComponent }
+        var currentCatalogVersionURLs = contentInventory.installedCatalogs().flatMap { locationForCatalog($0.name, version: $0.version)?.URLByDeletingLastPathComponent }
         if let mergedCatalogPath = mergedCatalogPath, url = NSURL(fileURLWithPath: mergedCatalogPath).URLByDeletingLastPathComponent {
             currentCatalogVersionURLs.append(url)
         }
@@ -245,16 +258,18 @@ extension ContentController {
 extension ContentController {
     /// The currently installed item package for the designated item.
     public func itemPackageForItemWithID(itemID: Int64) -> ItemPackage? {
-        if let installedVersion = contentInventory.installedVersionOfItemWithID(itemID) {
-            return try? ItemPackage(url: location.URLByAppendingPathComponent("Item/\(itemID)/\(installedVersion.schemaVersion).\(installedVersion.itemPackageVersion)"))
+        if let installedVersion = contentInventory.installedVersionOfItemWithID(itemID), URL = location.URLByAppendingPathComponent("Item/\(itemID)/\(installedVersion.schemaVersion).\(installedVersion.itemPackageVersion)") {
+            return try? ItemPackage(url: URL)
         }
-        
         return nil
     }
     
     /// Directly install item package located at `path`
     public func installItemPackage(atPath path: String, forItem item: Item) throws {
-        let tempDirectoryURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
+        guard let tempDirectoryURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString) else {
+            throw Error.errorWithCode(.Unknown, failureReason: "Unable to create temporary directory URL")
+        }
+        
         defer {
             do {
                 try NSFileManager.defaultManager().removeItemAtURL(tempDirectoryURL)
@@ -262,8 +277,14 @@ extension ContentController {
         }
         
         try ItemExtractor.extractItemPackage(location: NSURL(fileURLWithPath: path), destination: tempDirectoryURL)
-        let itemDirectoryURL = location.URLByAppendingPathComponent("Item/\(item.id)")
-        let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)")
+        
+        guard let itemDirectoryURL = location.URLByAppendingPathComponent("Item/\(item.id)") else {
+            throw Error.errorWithCode(.Unknown, failureReason: "Unable to create item directory")
+        }
+        
+        guard let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)") else {
+            throw Error.errorWithCode(.Unknown, failureReason: "Unable to create item version directory")
+        }
         
         do {
             try NSFileManager.defaultManager().createDirectoryAtURL(itemDirectoryURL, withIntermediateDirectories: true, attributes: nil)
@@ -283,8 +304,15 @@ extension ContentController {
     
     /// Downloads and installs a specific version of an item, if not installed already.
     public func installItemPackageForItem(item: Item, priority: InstallPriority = .Default, progress: ((amount: Float) -> Void)? = nil, completion: ((InstallItemPackageResult) -> Void)? = nil) {
-        let itemDirectoryURL = location.URLByAppendingPathComponent("Item/\(item.id)")
-        let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)/")
+        guard let itemDirectoryURL = location.URLByAppendingPathComponent("Item/\(item.id)") else {
+            completion?(.Error(errors: [Error.errorWithCode(.Unknown, failureReason: "Item directory URL is invalid")]))
+            return
+        }
+        
+        guard let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)/") else {
+            completion?(.Error(errors: [Error.errorWithCode(.Unknown, failureReason: "Item version directory URL is invalid")]))
+            return
+        }
         
         func isAlreadyInstalled() -> Bool {
             if let installedVersion = contentInventory.installedVersionOfItemWithID(item.id) where installedVersion.schemaVersion == Catalog.SchemaVersion && installedVersion.itemPackageVersion >= item.version {
@@ -382,9 +410,8 @@ extension ContentController {
     /// Uninstalls a specific version of an item.
     public func uninstallItemPackageForItem(item: Item) throws {
         let itemDirectoryURL = location.URLByAppendingPathComponent("Item/\(item.id)")
-        let versionDirectoryURL = itemDirectoryURL.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)")
         
-        if let installedVersion = contentInventory.installedVersionOfItemWithID(item.id) where installedVersion.schemaVersion == Catalog.SchemaVersion && installedVersion.itemPackageVersion == item.version {
+        if let installedVersion = contentInventory.installedVersionOfItemWithID(item.id) where installedVersion.schemaVersion == Catalog.SchemaVersion && installedVersion.itemPackageVersion == item.version, let versionDirectoryURL = itemDirectoryURL?.URLByAppendingPathComponent("\(Catalog.SchemaVersion).\(item.version)") {
             try NSFileManager.defaultManager().removeItemAtURL(versionDirectoryURL)
 
             try self.contentInventory.removeVersionForItemWithID(item.id)

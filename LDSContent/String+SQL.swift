@@ -43,7 +43,9 @@ extension String {
         
         var components = [String]()
         for imageRendition in imageRenditions {
-            components.append("\(Int(imageRendition.size.width))x\(Int(imageRendition.size.height)),\(imageRendition.url.absoluteString)")
+            guard let urlString = imageRendition.url.absoluteString else { continue }
+            
+            components.append("\(Int(imageRendition.size.width))x\(Int(imageRendition.size.height)),\(urlString)")
         }
         self.init(components.joinWithSeparator("\n"))
     }

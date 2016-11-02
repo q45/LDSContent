@@ -35,11 +35,11 @@ public extension ItemPackage {
         static let position = Expression<Int>("position")
         static let titleHTML = Expression<String>("title_html")
         static let title = Expression<String>("title")
-        static let webURL = Expression<String>("web_url")
+        static let webURL = Expression<String?>("web_url")
         static let contentType = Expression<ContentType>("content_type")
         
         static func fromRow(row: Row) -> Subitem {
-            return Subitem(id: row[id], uri: row[uri], docID: row[docID], docVersion: row[docVersion], position: row[position], titleHTML: row[titleHTML], title: row[title], webURL: NSURL(string: row[webURL]), contentType: row.get(contentType))
+            return Subitem(id: row[id], uri: row[uri], docID: row[docID], docVersion: row[docVersion], position: row[position], titleHTML: row[titleHTML], title: row[title], webURL: row[webURL].flatMap { NSURL(string: $0) }, contentType: row.get(contentType))
         }
         
     }

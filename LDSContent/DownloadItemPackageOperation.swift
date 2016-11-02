@@ -25,7 +25,7 @@ import Operations
 
 class DownloadItemPackageOperation: Operation {
     let session: Session
-    let tempDirectoryURL: NSURL
+    let tempDirectoryURL: NSURL?
     let baseURL: NSURL
     let externalID: String
     let version: Int
@@ -42,15 +42,17 @@ class DownloadItemPackageOperation: Operation {
         super.init()
         
         addObserver(BlockObserver(didFinish: { operation, errors in
-            if errors.isEmpty {
-                completion(.Success(location: self.tempDirectoryURL))
+            if errors.isEmpty, let tempDirectoryURL = self.tempDirectoryURL {
+                completion(.Success(location: tempDirectoryURL))
             } else {
                 completion(.Error(errors: errors))
             }
             
-            do {
-                try NSFileManager.defaultManager().removeItemAtURL(self.tempDirectoryURL)
-            } catch {}
+            if let tempDirectoryURL = self.tempDirectoryURL {
+                do {
+                    try NSFileManager.defaultManager().removeItemAtURL(tempDirectoryURL)
+                } catch {}
+            }
         }))
     }
     
@@ -58,8 +60,13 @@ class DownloadItemPackageOperation: Operation {
         downloadItemPackage(baseURL: baseURL, externalID: externalID, version: version, progress: progress) { result in
             switch result {
             case let .Success(location):
+                guard let tempDirectoryURL = self.tempDirectoryURL else {
+                    self.finish(Error.errorWithCode(.Unknown, failureReason: "Failed to get temporary catalog directory"))
+                    return
+                }
+                
                 do {
-                    try ItemExtractor.extractItemPackage(location: location, destination: self.tempDirectoryURL)
+                    try ItemExtractor.extractItemPackage(location: location, destination: tempDirectoryURL)
                     self.finish()
                 } catch {
                     self.finish(error)
@@ -76,7 +83,11 @@ class DownloadItemPackageOperation: Operation {
     }
     
     func downloadItemPackage(baseURL baseURL: NSURL, externalID: String, version: Int, progress: (amount: Float) -> Void, completion: (DownloadResult) -> Void) {
-        let compressedItemPackageURL = baseURL.URLByAppendingPathComponent("v3/item-packages/\(externalID)/\(version).zip")
+        guard let compressedItemPackageURL = session.baseURL.URLByAppendingPathComponent("v3/item-packages/\(externalID)/\(version).zip") else {
+            completion(.Error(error: Error.errorWithCode(.Unknown, failureReason: "Compressed item package URL is invalid")))
+            return
+        }
+        
         let request = NSMutableURLRequest(URL: compressedItemPackageURL)
         let task = session.urlSession.downloadTaskWithRequest(request)
         session.registerCallbacks(progress: progress, completion: { result in

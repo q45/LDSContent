@@ -171,9 +171,13 @@ extension MutableItemPackage {
     }
     
     public func addRelatedAudioItemWithSubitemID(subitemID: Int64, mediaURL: NSURL, fileSize: Int64, duration: Int, voice: RelatedAudioVoice?) throws -> RelatedAudioItem {
+        guard let mediaURLString = mediaURL.absoluteString else {
+            throw Error.errorWithCode(.Unknown, failureReason: "Media URL is not a URL")
+        }
+        
         let id = try db.run(RelatedAudioItemTable.table.insert(
             RelatedAudioItemTable.subitemID <- subitemID,
-            RelatedAudioItemTable.mediaURL <- mediaURL.absoluteString,
+            RelatedAudioItemTable.mediaURL <- mediaURLString,
             RelatedAudioItemTable.fileSize <- fileSize,
             RelatedAudioItemTable.duration <- duration,
             RelatedAudioItemTable.voice <- voice
@@ -194,9 +198,12 @@ extension MutableItemPackage {
     }
     
     public func addRelatedVideoItemSource(mediaURL mediaURL: NSURL, type: String, size: CGSize?, fileSize: Int64?, relatedVideoItemID: Int64) throws -> RelatedVideoItemSource {
+        guard let mediaURLString = mediaURL.absoluteString else {
+            throw Error.errorWithCode(.Unknown, failureReason: "Media URL is not a URL")
+        }
         
         let id = try db.run(RelatedVideoItemSourceTable.table.insert(
-            RelatedVideoItemSourceTable.mediaURL <- mediaURL.absoluteString,
+            RelatedVideoItemSourceTable.mediaURL <- mediaURLString,
             RelatedVideoItemSourceTable.type <- type,
             RelatedVideoItemSourceTable.width <- size.flatMap { Int($0.width) },
             RelatedVideoItemSourceTable.height <- size.flatMap { Int($0.height) },
