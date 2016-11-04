@@ -24,7 +24,7 @@ import Foundation
 
 private let escapeRegex = try! NSRegularExpression(pattern: "[!%_]", options: [])
 
-extension String {
+public extension String {
     
     func withoutDiacritics() -> String {
         let result = NSMutableString(string: self)
@@ -50,7 +50,7 @@ extension String {
         self.init(components.joinWithSeparator("\n"))
     }
     
-    func toImageRenditions() -> [ImageRendition]? {
+    public func toImageRenditions() -> [ImageRendition]? {
         var imageRenditions = [ImageRendition]()
         
         let scanner = NSScanner(string: self)
