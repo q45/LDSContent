@@ -21,159 +21,156 @@
 //
 
 import Foundation
-import Operations
+import ProcedureKit
 import SSZipArchive
 
-enum DownloadCatalogOperationError: ErrorType {
-    case MissingCatalogVersionError(String)
+enum DownloadCatalogOperationError: Error {
+    case missingCatalogVersionError(String)
 }
 
-class DownloadCatalogOperation: Operation, AutomaticInjectionOperationType {
-    var requirement: Int? // Catalog version injected from FetchCatalogVersionOperation
-    var result: DownloadCatalogResult? // When used in group operations it's easier to get individual results after all operations have finished
+class DownloadCatalogOperation: Procedure, ResultInjection {
+    
+    var requirement: PendingValue<Int> = .pending // Catalog version injected from FetchCatalogVersionOperation
+    var result: PendingValue<DownloadCatalogResult> = .pending
+    
     var isCurrent = false
     
     let catalogName: String
     let session: Session
-    let baseURL: NSURL
-    let destination: (version: Int) -> NSURL
-    let progress: (amount: Float) -> Void
-    let tempDirectoryURL: NSURL
+    let baseURL: URL
+    let destination: (_ version: Int) -> URL
+    let progress: (_ amount: Float) -> Void
+    let tempDirectoryURL: URL
     
-    init(session: Session, catalogName: String, baseURL: NSURL, destination: (version: Int) -> NSURL, progress: (amount: Float) -> Void, completion: (DownloadCatalogResult) -> Void) {
+    init(session: Session, catalogName: String, baseURL: URL, destination: @escaping (_ version: Int) -> URL, progress: @escaping (_ amount: Float) -> Void, completion: @escaping (DownloadCatalogResult) -> Void) {
         self.session = session
         self.catalogName = catalogName
         self.baseURL = baseURL
         self.destination = destination
         self.progress = progress
-        self.tempDirectoryURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
+        self.tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
         
         super.init()
         
-        addObserver(BlockObserver(didFinish: { operation, errors in
-            if errors.isEmpty, let version = self.requirement {
+        add(observer: BlockObserver(didFinish: { operation, errors in
+            if errors.isEmpty, let version = self.requirement.value {
                 if self.isCurrent {
-                    let result = DownloadCatalogResult.AlreadyCurrent
-                    self.result = result
+                    let result = DownloadCatalogResult.alreadyCurrent
+                    self.result = .ready(result)
                     completion(result)
                 } else {
-                    let destinationURL = self.destination(version: version)
+                    let destinationURL = self.destination(version)
                     do {
-                        if let directory = destinationURL.URLByDeletingLastPathComponent {
-                            try NSFileManager.defaultManager().createDirectoryAtURL(directory, withIntermediateDirectories: true, attributes: nil)
-                        }
-                        try NSFileManager.defaultManager().moveItemAtURL(self.tempDirectoryURL.URLByAppendingPathComponent("Catalog.sqlite"), toURL: destinationURL)
+                        let directory = destinationURL.deletingLastPathComponent()
+                        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
+                        try FileManager.default.moveItem(at: self.tempDirectoryURL.appendingPathComponent("Catalog.sqlite"), to: destinationURL)
                     } catch {}
-                    let result = DownloadCatalogResult.Success(version: version)
-                    self.result = result
+                    let result = DownloadCatalogResult.success(version: version)
+                    self.result = .ready(result)
                     completion(result)
                 }
             } else {
-                let result = DownloadCatalogResult.Error(errors: errors)
-                self.result = result
+                let result = DownloadCatalogResult.error(errors: errors)
+                self.result = .ready(result)
                 completion(result)
             }
         }))
     }
     
     override func execute() {
-        guard let catalogVersion = requirement else {
-            finish(DownloadCatalogOperationError.MissingCatalogVersionError("Catalog version was not injected properly and is nil."))
+        guard let catalogVersion = requirement.value else {
+            finish(withError: DownloadCatalogOperationError.missingCatalogVersionError("Catalog version was not injected properly and is nil."))
             return
         }
         
-        let destinationURL = destination(version: catalogVersion)
+        let destinationURL = destination(catalogVersion)
         if (try? Catalog(path: destinationURL.path)) != nil {
             isCurrent = true
             finish()
             return
-        } else if let path = destinationURL.path where NSFileManager.defaultManager().fileExistsAtPath(path) {
+        } else if FileManager.default.fileExists(atPath: destinationURL.path) {
             do {
-                try NSFileManager.defaultManager().removeItemAtURL(destinationURL)
+                try FileManager.default.removeItem(at: destinationURL)
             } catch {
-                finish(error)
+                finish(withError: error)
                 return
             }
         }
         
         downloadCatalog(baseURL: baseURL, catalogVersion: catalogVersion, progress: progress) { result in
             switch result {
-            case let .Success(location):
+            case let .success(location):
                 self.extractCatalog(location: location) { result in
                     switch result {
-                    case .Success:
+                    case .success:
                         self.finish()
-                    case let .Error(error):
-                        self.finish(error)
+                    case let .error(error):
+                        self.finish(withError: error)
                     }
                 }
-            case let .Error(error):
-                self.finish(error)
+            case let .error(error):
+                self.finish(withError: error)
             }
         }
     }
     
     enum DownloadResult {
-        case Success(location: NSURL)
-        case Error(error: NSError)
+        case success(location: URL)
+        case error(error: Error)
     }
     
-    func downloadCatalog(baseURL baseURL: NSURL, catalogVersion: Int, progress: (amount: Float) -> Void, completion: (DownloadResult) -> Void) {
-        let compressedCatalogURL = baseURL.URLByAppendingPathComponent("v3/catalogs/\(catalogVersion).zip")
-        let request = NSMutableURLRequest(URL: compressedCatalogURL)
-        let task = session.urlSession.downloadTaskWithRequest(request)
+    func downloadCatalog(baseURL: URL, catalogVersion: Int, progress: @escaping (_ amount: Float) -> Void, completion: @escaping (DownloadResult) -> Void) {
+        let compressedCatalogURL = baseURL.appendingPathComponent("v3/catalogs/\(catalogVersion).zip")
+        let request = URLRequest(url: compressedCatalogURL)
+        let task = session.urlSession.downloadTask(with: request)
         session.registerCallbacks(progress: progress, completion: { result in
             self.session.deregisterCallbacksForTaskIdentifier(task.taskIdentifier)
-            self.session.networkActivityObservers.notify(.Stop)
+            self.session.networkActivityObservers.notify(.stop)
             
             switch result {
-            case let .Error(error: error):
-                completion(.Error(error: error))
-            case let .Success(location: location):
-                completion(.Success(location: location))
+            case let .error(error: error):
+                completion(.error(error: error))
+            case let .success(location: location):
+                completion(.success(location: location))
             }
         }, forTaskIdentifier: task.taskIdentifier)
-        session.networkActivityObservers.notify(.Start)
+        session.networkActivityObservers.notify(.start)
         task.resume()
     }
     
     enum ExtractCatalogResult {
-        case Success
-        case Error(error: NSError)
+        case success
+        case error(error: Error)
     }
     
-    func extractCatalog(location location: NSURL, completion: (ExtractCatalogResult) -> Void) {
-        guard let sourcePath = location.path else {
-            completion(.Error(error: Error.errorWithCode(.Unknown, failureReason: "Failed to get compressed catalog path")))
+    func extractCatalog(location: URL, completion: (ExtractCatalogResult) -> Void) {
+        let sourcePath = location.path
+        do {
+            try FileManager.default.createDirectory(at: tempDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+        } catch let error as NSError {
+            completion(.error(error: error))
             return
         }
+        
+        let destinationPath = tempDirectoryURL.path
+        guard SSZipArchive.unzipFile(atPath: sourcePath, toDestination: destinationPath) else {
+            completion(.error(error: ContentError.errorWithCode(.unknown, failureReason: "Failed to decompress catalog")))
+            return
+        }
+        
+        let uncompressedCatalogURL = tempDirectoryURL.appendingPathComponent("Catalog.sqlite")
         
         do {
-            try NSFileManager.defaultManager().createDirectoryAtURL(tempDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-        } catch let error as NSError {
-            completion(.Error(error: error))
+            if try !uncompressedCatalogURL.checkResourceIsReachable() {
+                completion(.error(error: ContentError.errorWithCode(.unknown, failureReason: "Uncompressed catalog is not reachable")))
+                return
+            }
+        } catch {
+            completion(.error(error: error))
             return
         }
         
-        guard let destinationPath = tempDirectoryURL.path else {
-            completion(.Error(error: Error.errorWithCode(.Unknown, failureReason: "Failed to get temp directory path")))
-            return
-        }
-            
-        guard SSZipArchive.unzipFileAtPath(sourcePath, toDestination: destinationPath) else {
-            completion(.Error(error: Error.errorWithCode(.Unknown, failureReason: "Failed to decompress catalog")))
-            return
-        }
-        
-        let uncompressedCatalogURL = tempDirectoryURL.URLByAppendingPathComponent("Catalog.sqlite")
-        
-        var error: NSError?
-        if !uncompressedCatalogURL.checkResourceIsReachableAndReturnError(&error), let error = error {
-            completion(.Error(error: error))
-            return
-        }
-        
-        completion(.Success)
+        completion(.success)
     }
     
 }

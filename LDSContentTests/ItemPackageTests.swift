@@ -68,7 +68,7 @@ class ItemPackageTests: XCTestCase {
         let searchResult = searchResults.first!
         let subitemContent = itemPackage.subitemContentWithSubitemID(searchResult.subitemID)!
         
-        let string = String(data: subitemContent.contentHTML.subdataWithRange(searchResult.matchRanges.first!), encoding: NSUTF8StringEncoding)
+        let string = String(data: (subitemContent.contentHTML as NSData).subdata(with: searchResult.matchRanges.first!), encoding: String.Encoding.utf8)
         XCTAssertEqual(string, "Alma")
         
         let subitemID = searchResult.subitemID
@@ -192,7 +192,7 @@ class ItemPackageTests: XCTestCase {
     
     func testOrderedSubitemURIsWithURIs() {
         let orderedURIs = itemPackage.subitems().map { $0.uri }
-        let unorderedURIs = orderedURIs.shuffle()
+        let unorderedURIs = orderedURIs.shuffled()
         
         XCTAssertFalse(orderedURIs == unorderedURIs)
         
@@ -207,9 +207,9 @@ extension ItemPackageTests {
         super.setUp()
         
         do {
-            let tempDirectoryURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
-            try NSFileManager.defaultManager().createDirectoryAtURL(tempDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-            contentController = try ContentController(location: tempDirectoryURL, baseURL: NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!)
+            let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
+            try FileManager.default.createDirectory(at: tempDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+            contentController = try ContentController(location: tempDirectoryURL, baseURL: URL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!)
         } catch {
             NSLog("Failed to create content controller: %@", "\(error)")
         }
@@ -217,7 +217,7 @@ extension ItemPackageTests {
     
     override class func tearDown() {
         do {
-            try NSFileManager.defaultManager().removeItemAtURL(contentController.location)
+            try FileManager.default.removeItem(at: contentController.location)
         } catch {}
         
         super.tearDown()
@@ -232,48 +232,48 @@ extension ItemPackageTests {
         }
     }
     
-    private func loadCatalog() -> Catalog? {
+    fileprivate func loadCatalog() -> Catalog? {
         var catalog = ItemPackageTests.contentController.catalog
         if catalog == nil {
-            let semaphore = dispatch_semaphore_create(0)
+            let semaphore = DispatchSemaphore(value: 0)
             ItemPackageTests.contentController.updateCatalog(progress: { _ in }, completion: { result in
                 switch result {
-                case let .Success(newCatalog):
+                case let .success(newCatalog):
                     catalog = newCatalog
-                case let .PartialSuccess(newCatalog, _):
+                case let .partialSuccess(newCatalog, _):
                     catalog = newCatalog
-                case let .Error(errors):
+                case let .error(errors):
                     NSLog("Failed with errors %@", "\(errors)")
                 }
                 
-                dispatch_semaphore_signal(semaphore)
+                semaphore.signal()
             })
-            if dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, Int64(60 * NSEC_PER_SEC))) != 0 {
+            if semaphore.wait(timeout: DispatchTime.now() + Double(Int64(60 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) == .timedOut {
                 NSLog("Timed out updating catalog")
             }
         }
         return catalog
     }
     
-    private func loadItemPackageForItemWithURI(uri: String, iso639_3Code: String, inCatalog catalog: Catalog) -> ItemPackage? {
-        guard let language = catalog.languageWithISO639_3Code(iso639_3Code), item = catalog.itemWithURI(uri, languageID: language.id) else { return nil }
+    fileprivate func loadItemPackageForItemWithURI(_ uri: String, iso639_3Code: String, inCatalog catalog: Catalog) -> ItemPackage? {
+        guard let language = catalog.languageWithISO639_3Code(iso639_3Code), let item = catalog.itemWithURI(uri, languageID: language.id) else { return nil }
         
         var itemPackage = ItemPackageTests.contentController.itemPackageForItemWithID(item.id)
         if itemPackage == nil {
-            let semaphore = dispatch_semaphore_create(0)
+            let semaphore = DispatchSemaphore(value: 0)
             ItemPackageTests.contentController.installItemPackageForItem(item, progress: { _ in }, completion: { result in
                 switch result {
-                case let .Success(newItemPackage):
+                case let .success(newItemPackage):
                     itemPackage = newItemPackage
-                case let .AlreadyInstalled(newItemPackage):
+                case let .alreadyInstalled(newItemPackage):
                     itemPackage = newItemPackage
-                case let .Error(errors):
+                case let .error(errors):
                     NSLog("Failed with errors %@", "\(errors)")
                 }
                 
-                dispatch_semaphore_signal(semaphore)
+                semaphore.signal()
             })
-            if dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, Int64(60 * NSEC_PER_SEC))) != 0 {
+            if semaphore.wait(timeout: DispatchTime.now() + Double(Int64(60 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) == .timedOut {
                 NSLog("Timed out installing item package")
             }
         }

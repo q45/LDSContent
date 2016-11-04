@@ -46,21 +46,21 @@ class LibraryCollectionViewController: UIViewController {
     }
     
     lazy var tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .Plain)
+        let tableView = UITableView(frame: .zero, style: .plain)
         tableView.dataSource = self
         tableView.delegate = self
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
     
-    private static let CellIdentifier = "Cell"
+    fileprivate static let CellIdentifier = "Cell"
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         automaticallyAdjustsScrollViewInsets = true
         
-        tableView.registerClass(LibraryItemTableViewCell.self, forCellReuseIdentifier: LibraryCollectionViewController.CellIdentifier)
+        tableView.register(LibraryItemTableViewCell.self, forCellReuseIdentifier: LibraryCollectionViewController.CellIdentifier)
         tableView.estimatedRowHeight = 44
         
         view.addSubview(tableView)
@@ -69,12 +69,12 @@ class LibraryCollectionViewController: UIViewController {
             "tableView": tableView,
         ]
         
-        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("|[tableView]|", options: [], metrics: nil, views: views))
-        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[tableView]|", options: [], metrics: nil, views: views))
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|[tableView]|", options: [], metrics: nil, views: views))
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: [], metrics: nil, views: views))
         
-        contentController.catalogUpdateObservers.add(self, operationQueue: .mainQueue(), self.dynamicType.catalogDidUpdate)
-        contentController.itemPackageInstallObservers.add(self, operationQueue: .mainQueue(), self.dynamicType.itemPackageDidUpdate)
-        contentController.itemPackageUninstallObservers.add(self, operationQueue: .mainQueue(), self.dynamicType.itemPackageDidUninstall)
+        contentController.catalogUpdateObservers.add(self, operationQueue: .main, type(of: self).catalogDidUpdate)
+        contentController.itemPackageInstallObservers.add(self, operationQueue: .main, type(of: self).itemPackageDidUpdate)
+        contentController.itemPackageUninstallObservers.add(self, operationQueue: .main, type(of: self).itemPackageDidUninstall)
         catalog = contentController.catalog
         reloadData()
     }
@@ -91,28 +91,28 @@ class LibraryCollectionViewController: UIViewController {
         }
     }
     
-    func catalogDidUpdate(catalog: Catalog) {
+    func catalogDidUpdate(_ catalog: Catalog) {
         self.catalog = catalog
         reloadData()
     }
     
-    func itemPackageDidUpdate(item: Item) {
+    func itemPackageDidUpdate(_ item: Item) {
         tableView.reloadData()
     }
     
-    func itemPackageDidUninstall(item: Item) {
+    func itemPackageDidUninstall(_ item: Item) {
         tableView.reloadData()
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            tableView.deselectRowAtIndexPath(indexPath, animated: true)
+            tableView.deselectRow(at: indexPath, animated: true)
         }
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         tableView.flashScrollIndicators()
@@ -124,35 +124,35 @@ class LibraryCollectionViewController: UIViewController {
 
 extension LibraryCollectionViewController: UITableViewDataSource {
     
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return sections.count
     }
     
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return sections[section].libraryNodes.count
     }
     
-    func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return sections[section].librarySection.title
     }
     
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(LibraryCollectionViewController.CellIdentifier, forIndexPath: indexPath)
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: LibraryCollectionViewController.CellIdentifier, for: indexPath)
         
         let libraryNode = sections[indexPath.section].libraryNodes[indexPath.row]
         switch libraryNode {
         case let libraryCollection as LibraryCollection:
             cell.textLabel?.text = libraryCollection.titleHTML
-            cell.accessoryType = .DisclosureIndicator
+            cell.accessoryType = .disclosureIndicator
         case let libraryItem as LibraryItem:
             if let itemPackage = contentController.itemPackageForItemWithID(libraryItem.itemID) {
                 cell.textLabel?.text = libraryItem.titleHTML
                 cell.detailTextLabel?.text = "v\(itemPackage.schemaVersion).\(itemPackage.itemPackageVersion)"
-                cell.accessoryType = .DisclosureIndicator
+                cell.accessoryType = .disclosureIndicator
             } else {
                 cell.textLabel?.text = libraryNode.titleHTML
                 cell.detailTextLabel?.text = nil
-                cell.accessoryType = .None
+                cell.accessoryType = .none
             }
         default:
             break
@@ -161,7 +161,7 @@ extension LibraryCollectionViewController: UITableViewDataSource {
         return cell
     }
     
-    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         let libraryNode = sections[indexPath.section].libraryNodes[indexPath.row]
         switch libraryNode {
         case let libraryItem as LibraryItem:
@@ -171,27 +171,27 @@ extension LibraryCollectionViewController: UITableViewDataSource {
         }
     }
     
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .Delete {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
             let libraryNode = sections[indexPath.section].libraryNodes[indexPath.row]
             switch libraryNode {
             case _ as LibraryCollection:
                 break
             case let libraryItem as LibraryItem:
                 if let item = catalog?.itemWithID(libraryItem.itemID) {
-                    SVProgressHUD.setDefaultMaskType(.Clear)
-                    SVProgressHUD.showWithStatus("Uninstalling item")
+                    SVProgressHUD.setDefaultMaskType(.clear)
+                    SVProgressHUD.show(withStatus: "Uninstalling item")
                     
                     do {
                         try self.contentController.uninstallItemPackageForItem(item)
 
-                        SVProgressHUD.setDefaultMaskType(.None)
-                        SVProgressHUD.showSuccessWithStatus("Uninstalled")
+                        SVProgressHUD.setDefaultMaskType(.none)
+                        SVProgressHUD.showSuccess(withStatus: "Uninstalled")
                     } catch let error as NSError {
                         NSLog("Failed to uninstall item package: %@", error)
 
-                        SVProgressHUD.setDefaultMaskType(.None)
-                        SVProgressHUD.showErrorWithStatus("Failed")
+                        SVProgressHUD.setDefaultMaskType(.none)
+                        SVProgressHUD.showError(withStatus: "Failed")
                     }
                 }
             default:
@@ -206,7 +206,7 @@ extension LibraryCollectionViewController: UITableViewDataSource {
 
 extension LibraryCollectionViewController: UITableViewDelegate {
     
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let libraryNode = sections[indexPath.section].libraryNodes[indexPath.row]
         switch libraryNode {
         case let libraryCollection as LibraryCollection:
@@ -220,11 +220,11 @@ extension LibraryCollectionViewController: UITableViewDelegate {
                     
                     navigationController?.pushViewController(viewController, animated: true)
                 } else {
-                    tableView.deselectRowAtIndexPath(indexPath, animated: false)
+                    tableView.deselectRow(at: indexPath, animated: false)
                 }
             } else {
                 if let item = catalog?.itemWithID(libraryItem.itemID) {
-                    SVProgressHUD.setDefaultMaskType(.Clear)
+                    SVProgressHUD.setDefaultMaskType(.clear)
                     SVProgressHUD.showProgress(0, status:"Installing item")
                     
                     var previousAmount: Float = 0
@@ -232,31 +232,31 @@ extension LibraryCollectionViewController: UITableViewDelegate {
                         guard previousAmount < amount - 0.1 else { return }
                         previousAmount = amount
                             
-                        dispatch_async(dispatch_get_main_queue()) {
+                        DispatchQueue.main.async {
                             SVProgressHUD.showProgress(amount, status: "Installing item")
                         }
                     }, completion: { result in
                         switch result {
-                        case .Success, .AlreadyInstalled:
-                            SVProgressHUD.setDefaultMaskType(.None)
-                            SVProgressHUD.showSuccessWithStatus("Installed")
-                        case let .Error(errors):
+                        case .success, .alreadyInstalled:
+                            SVProgressHUD.setDefaultMaskType(.none)
+                            SVProgressHUD.showSuccess(withStatus: "Installed")
+                        case let .error(errors):
                             NSLog("Failed to install item package: %@", "\(errors)")
                             
-                            SVProgressHUD.setDefaultMaskType(.None)
-                            SVProgressHUD.showErrorWithStatus("Failed")
+                            SVProgressHUD.setDefaultMaskType(.none)
+                            SVProgressHUD.showError(withStatus: "Failed")
                         }
                     })
                 }
                 
-                tableView.deselectRowAtIndexPath(indexPath, animated: false)
+                tableView.deselectRow(at: indexPath, animated: false)
             }
         default:
-            tableView.deselectRowAtIndexPath(indexPath, animated: false)
+            tableView.deselectRow(at: indexPath, animated: false)
         }
     }
     
-    func tableView(tableView: UITableView, titleForDeleteConfirmationButtonForRowAtIndexPath indexPath: NSIndexPath) -> String? {
+    func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
         return "Uninstall"
     }
     

@@ -22,14 +22,14 @@
 
 import Foundation
 
-extension NSFileManager {
+extension FileManager {
     
-    static var documentURL: NSURL {
-        return NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).last!
+    static var documentURL: URL {
+        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last!
     }
     
-    static var privateDocumentsURL: NSURL {
-        return NSFileManager.defaultManager().URLsForDirectory(.LibraryDirectory, inDomains: .UserDomainMask).last!.URLByAppendingPathComponent("Private Documents")
+    static var privateDocumentsURL: URL {
+        return FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).last!.appendingPathComponent("Private Documents")
     }
     
 }

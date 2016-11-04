@@ -24,8 +24,8 @@ import Foundation
 
 public enum Platform: Int {
     
-    case All = 1
+    case all = 1
     case iOS = 2
-    case Android = 3
+    case android = 3
     
 }

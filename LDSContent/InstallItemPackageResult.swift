@@ -23,7 +23,7 @@
 import Foundation
 
 public enum InstallItemPackageResult {
-    case Success(itemPackage: ItemPackage)
-    case AlreadyInstalled(itemPackage: ItemPackage)
-    case Error(errors: [ErrorType])
+    case success(itemPackage: ItemPackage)
+    case alreadyInstalled(itemPackage: ItemPackage)
+    case error(errors: [Error])
 }

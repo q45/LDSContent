@@ -25,26 +25,17 @@ import SSZipArchive
 
 struct ItemExtractor {
     
-    static func extractItemPackage(location location: NSURL, destination: NSURL) throws {
-        guard let sourcePath = location.path else {
-            throw Error.errorWithCode(.Unknown, failureReason: "Failed to get compressed item package path")
+    static func extractItemPackage(location: URL, destination: URL) throws {
+        let sourcePath = location.path
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true, attributes: nil)
+        let destinationPath = destination.path
+        guard SSZipArchive.unzipFile(atPath: sourcePath, toDestination: destinationPath) else {
+            throw ContentError.errorWithCode(.unknown, failureReason: "Failed to decompress item package")
         }
         
-        try NSFileManager.defaultManager().createDirectoryAtURL(destination, withIntermediateDirectories: true, attributes: nil)
-        
-        guard let destinationPath = destination.path else {
-            throw Error.errorWithCode(.Unknown, failureReason: "Failed to get destination directory path")
-        }
-        
-        guard SSZipArchive.unzipFileAtPath(sourcePath, toDestination: destinationPath) else {
-            throw Error.errorWithCode(.Unknown, failureReason: "Failed to decompress item package")
-        }
-        
-        let uncompressedPackageURL = destination.URLByAppendingPathComponent("package.sqlite")
-        
-        var error: NSError?
-        if !uncompressedPackageURL.checkResourceIsReachableAndReturnError(&error), let error = error {
-            throw error
+        let uncompressedPackageURL = destination.appendingPathComponent("package.sqlite")
+        if try !uncompressedPackageURL.checkResourceIsReachable() {
+            throw ContentError.errorWithCode(.unknown, failureReason: "Uncompressed catalog is not reachable")
         }
     }
     

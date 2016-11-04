@@ -26,7 +26,7 @@ public struct RelatedVideoItem: Equatable {
     
     public let id: Int64
     public let subitemID: Int64
-    public let posterURL: NSURL?
+    public let posterURL: URL?
     public let videoID: String
     public let title: String
     

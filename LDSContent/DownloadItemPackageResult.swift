@@ -23,6 +23,6 @@
 import Foundation
 
 public enum DownloadItemPackageResult {
-    case Success(location: NSURL)
-    case Error(errors: [ErrorType])
+    case success(location: URL)
+    case error(errors: [Error])
 }

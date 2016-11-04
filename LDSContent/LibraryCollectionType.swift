@@ -24,7 +24,7 @@ import Foundation
 
 public enum LibraryCollectionType: Int {
     
-    case Default = 1
-    case Scriptures = 2
+    case standard = 1
+    case scriptures = 2
     
 }

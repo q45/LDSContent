@@ -35,21 +35,21 @@ public extension ItemPackage {
         static let duration = Expression<Int>("duration")
         static let voice = Expression<RelatedAudioVoice?>("related_audio_voice_id")
         
-        static func fromRow(row: Row) -> RelatedAudioItem? {
-            guard let mediaURL = NSURL(string: row[mediaURL]) else { return nil }
+        static func fromRow(_ row: Row) -> RelatedAudioItem? {
+            guard let mediaURL = URL(string: row[mediaURL]) else { return nil }
             
             return RelatedAudioItem(id: row[id], subitemID: row[subitemID], mediaURL: mediaURL, fileSize: row[fileSize], duration: row[duration], voice: row.get(voice))
         }
         
-        static func fromNamespacedRow(row: Row) -> RelatedAudioItem? {
-            guard let mediaURL = NSURL(string: row[RelatedAudioItemTable.table[mediaURL]]) else { return nil }
+        static func fromNamespacedRow(_ row: Row) -> RelatedAudioItem? {
+            guard let mediaURL = URL(string: row[RelatedAudioItemTable.table[mediaURL]]) else { return nil }
             
             return RelatedAudioItem(id: row[RelatedAudioItemTable.table[id]], subitemID: row[RelatedAudioItemTable.table[subitemID]], mediaURL: mediaURL, fileSize: row[RelatedAudioItemTable.table[fileSize]], duration: row[RelatedAudioItemTable.table[duration]], voice: row.get(RelatedAudioItemTable.voice))
         }
         
     }
     
-    public func relatedAudioItemForSubitemWithURI(subitemURI: String, relatedAudioVoice: RelatedAudioVoice? = nil) -> RelatedAudioItem? {
+    public func relatedAudioItemForSubitemWithURI(_ subitemURI: String, relatedAudioVoice: RelatedAudioVoice? = nil) -> RelatedAudioItem? {
         do {
             let relatedAudioItems = try db.prepare(RelatedAudioItemTable.table.join(SubitemTable.table, on: SubitemTable.table[SubitemTable.id] == RelatedAudioItemTable.table[RelatedAudioItemTable.subitemID]).filter(SubitemTable.uri == subitemURI).order(RelatedAudioItemTable.voice)).flatMap { RelatedAudioItemTable.fromNamespacedRow($0) }
             return relatedAudioItems.find { $0.voice == relatedAudioVoice } ?? relatedAudioItems.first
@@ -58,7 +58,7 @@ public extension ItemPackage {
         }
     }
     
-    public func relatedAudioItemsForSubitemWithID(subitemID: Int64) -> [RelatedAudioItem] {
+    public func relatedAudioItemsForSubitemWithID(_ subitemID: Int64) -> [RelatedAudioItem] {
         do {
             return try db.prepare(RelatedAudioItemTable.table.filter(RelatedAudioItemTable.subitemID == subitemID)).flatMap { RelatedAudioItemTable.fromRow($0) }
         } catch {
@@ -66,7 +66,7 @@ public extension ItemPackage {
         }
     }
     
-    public func relatedAudioItemsForSubitemsWithIDs(subitemIDs: [Int64]) -> [RelatedAudioItem] {
+    public func relatedAudioItemsForSubitemsWithIDs(_ subitemIDs: [Int64]) -> [RelatedAudioItem] {
         do {
             return try db.prepare(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID))).flatMap { RelatedAudioItemTable.fromRow($0) }
         } catch {
@@ -74,20 +74,24 @@ public extension ItemPackage {
         }
     }
     
-    public func hasRelatedAudioItemsForSubitemsWithIDs(subitemIDs: [Int64]) -> Bool {
-        return db.scalar(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID)).count) > 0
+    public func hasRelatedAudioItemsForSubitemsWithIDs(_ subitemIDs: [Int64]) -> Bool {
+        do {
+            return try db.scalar(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID)).count) > 0
+        } catch {
+            return false
+        }
     }
     
-    private func subitemIDsForDescendantsOfNavNode(navNode: NavNode) -> [Int64] {
+    fileprivate func subitemIDsForDescendantsOfNavNode(_ navNode: NavNode) -> [Int64] {
         var subitemIDs = Set<Int64>()
         
         switch navNode {
         case let navItem as NavItem:
             subitemIDs.insert(navItem.subitemID)
         case let navCollection as NavCollection:
-            for section in navSectionsForNavCollectionWithID(navCollection.id) ?? [] {
-                for navNode in navNodesForNavSectionWithID(section.id) ?? [] {
-                    subitemIDs.unionInPlace(subitemIDsForDescendantsOfNavNode(navNode))
+            for section in navSectionsForNavCollectionWithID(navCollection.id) {
+                for navNode in navNodesForNavSectionWithID(section.id) {
+                    subitemIDs.formUnion(subitemIDsForDescendantsOfNavNode(navNode))
                 }
             }
         default:
@@ -97,12 +101,12 @@ public extension ItemPackage {
         return Array(subitemIDs)
     }
     
-    func relatedAudioItemsInNavCollection(collection: NavCollection) -> [RelatedAudioItem] {
+    func relatedAudioItemsInNavCollection(_ collection: NavCollection) -> [RelatedAudioItem] {
         let subitemIDs = subitemIDsForDescendantsOfNavNode(collection)
         return relatedAudioItemsForSubitemsWithIDs(subitemIDs)
     }
     
-    func relatedAudioAvailableInNavCollection(collection: NavCollection) -> Bool {
+    func relatedAudioAvailableInNavCollection(_ collection: NavCollection) -> Bool {
         let subitemIDs = subitemIDsForDescendantsOfNavNode(collection)
         return hasRelatedAudioItemsForSubitemsWithIDs(subitemIDs)
     }

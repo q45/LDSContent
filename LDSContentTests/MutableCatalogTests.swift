@@ -42,7 +42,7 @@ class MutableCatalogTests: XCTestCase {
     }
     
     func testSource() {
-        let source = Source(id: 1, name: "source", type: .Default)
+        let source = Source(id: 1, name: "source", type: .standard)
         
         XCTAssertNoThrow(try catalog.addOrUpdateSource(source))
         XCTAssertEqual(catalog.sources(), [source])
@@ -50,7 +50,7 @@ class MutableCatalogTests: XCTestCase {
         XCTAssertNoThrow(try catalog.addOrUpdateSource(source))
         XCTAssertEqual(catalog.sources(), [source])
         
-        let source2 = Source(id: 2, name: "source2", type: .Default)
+        let source2 = Source(id: 2, name: "source2", type: .standard)
         
         XCTAssertNoThrow(try catalog.addOrUpdateSource(source2))
         XCTAssertEqual(catalog.sources(), [source, source2])
@@ -69,7 +69,7 @@ class MutableCatalogTests: XCTestCase {
     }
     
     func testItem() {
-        let item = Item(id: 1, externalID: "1", languageID: 1, sourceID: 1, platform: .All, uri: "/item", title: "Item", itemCoverRenditions: [ImageRendition(size: CGSize(width: 10, height: 10), url: NSURL(string: "https://example.org/example.png")!)], itemCategoryID: 1, version: 1, obsolete: false)
+        let item = Item(id: 1, externalID: "1", languageID: 1, sourceID: 1, platform: .all, uri: "/item", title: "Item", itemCoverRenditions: [ImageRendition(size: CGSize(width: 10, height: 10), url: URL(string: "https://example.org/example.png")!)], itemCategoryID: 1, version: 1, obsolete: false)
         
         XCTAssertNoThrow(try catalog.addOrUpdateItem(item))
         XCTAssertEqual(catalog.itemWithID(1), item)
@@ -88,7 +88,7 @@ class MutableCatalogTests: XCTestCase {
     }
     
     func testLibraryCollection() {
-        let libraryCollection = LibraryCollection(id: 1, externalID: "1", librarySectionID: nil, librarySectionExternalID: nil, position: 1, titleHTML: "collection", coverRenditions: [ImageRendition(size: CGSize(width: 10, height: 10), url: NSURL(string: "https://example.org/example.png")!)], type: .Default)
+        let libraryCollection = LibraryCollection(id: 1, externalID: "1", librarySectionID: nil, librarySectionExternalID: nil, position: 1, titleHTML: "collection", coverRenditions: [ImageRendition(size: CGSize(width: 10, height: 10), url: URL(string: "https://example.org/example.png")!)], type: .standard)
         
         XCTAssertNoThrow(try catalog.addOrUpdateLibraryCollection(libraryCollection))
         XCTAssertEqual(catalog.libraryCollectionWithID(1), libraryCollection)

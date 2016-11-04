@@ -34,59 +34,59 @@ extension String {
     
     func escaped() -> String {
         let result = NSMutableString(string: self)
-        escapeRegex.replaceMatchesInString(result, options: [], range: NSMakeRange(0, result.length), withTemplate: "!$0")
+        escapeRegex.replaceMatches(in: result, options: [], range: NSMakeRange(0, result.length), withTemplate: "!$0")
         return result as String
     }
     
     init?(_ imageRenditions: [ImageRendition]?) {
-        guard let imageRenditions = imageRenditions where !imageRenditions.isEmpty else { return nil }
+        guard let imageRenditions = imageRenditions, !imageRenditions.isEmpty else { return nil }
         
         var components = [String]()
         for imageRendition in imageRenditions {
             components.append("\(Int(imageRendition.size.width))x\(Int(imageRendition.size.height)),\(imageRendition.url.absoluteString)")
         }
-        self.init(components.joinWithSeparator("\n"))
+        self.init(components.joined(separator: "\n"))
     }
     
     func toImageRenditions() -> [ImageRendition]? {
         var imageRenditions = [ImageRendition]()
         
-        let scanner = NSScanner(string: self)
+        let scanner = Scanner(string: self)
         scanner.charactersToBeSkipped = nil
         
         while true {
             var width: Int = 0
-            if !scanner.scanInteger(&width) || width < 0 {
+            if !scanner.scanInt(&width) || width < 0 {
                 return nil
             }
             
-            if !scanner.scanString("x", intoString: nil) {
+            if !scanner.scanString("x", into: nil) {
                 return nil
             }
             
             var height: Int = 0
-            if !scanner.scanInteger(&height) || height < 0 {
+            if !scanner.scanInt(&height) || height < 0 {
                 return nil
             }
             
-            if !scanner.scanString(",", intoString: nil) {
+            if !scanner.scanString(",", into: nil) {
                 return nil
             }
             
             var urlString: NSString?
-            if !scanner.scanUpToString("\n", intoString: &urlString) {
+            if !scanner.scanUpTo("\n", into: &urlString) {
                 return nil
             }
             
-            guard let unwrappedURLString = urlString as? String, url = NSURL(string: unwrappedURLString) else { return nil }
+            guard let unwrappedURLString = urlString as? String, let url = URL(string: unwrappedURLString) else { return nil }
             
             imageRenditions.append(ImageRendition(size: CGSize(width: width, height: height), url: url))
             
-            if scanner.atEnd {
+            if scanner.isAtEnd {
                 break
             }
             
-            if !scanner.scanString("\n", intoString: nil) {
+            if !scanner.scanString("\n", into: nil) {
                 return nil
             }
         }

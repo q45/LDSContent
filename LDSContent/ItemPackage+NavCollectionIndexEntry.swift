@@ -36,17 +36,21 @@ extension ItemPackage {
         static let indexPathSection = Expression<Int>("section")
         static let indexPathRow = Expression<Int>("row")
         
-        static func fromRow(row: Row) -> NavCollectionIndexEntry {
-            return NavCollectionIndexEntry(id: row[id], navCollectionID: row[navCollectionID], position: row[position], title: row[title], listIndex: row[listIndex], indexPath: NSIndexPath(forItem: row[indexPathRow], inSection: row[indexPathSection]))
+        static func fromRow(_ row: Row) -> NavCollectionIndexEntry {
+            return NavCollectionIndexEntry(id: row[id], navCollectionID: row[navCollectionID], position: row[position], title: row[title], listIndex: row[listIndex], indexPath: IndexPath(item: row[indexPathRow], section: row[indexPathSection]))
         }
         
     }
     
-    public func navCollectionIndexEntryWithID(id: Int64) -> NavCollectionIndexEntry? {
-        return db.pluck(NavCollectionIndexEntryTable.table.filter(NavCollectionIndexEntryTable.id == id)).map { NavCollectionIndexEntryTable.fromRow($0) }
+    public func navCollectionIndexEntryWithID(_ id: Int64) -> NavCollectionIndexEntry? {
+        do {
+            return try db.pluck(NavCollectionIndexEntryTable.table.filter(NavCollectionIndexEntryTable.id == id)).map { NavCollectionIndexEntryTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
-    public func navCollectionIndexEntriesForNavCollectionWithID(navCollectionID: Int64) -> [NavCollectionIndexEntry] {
+    public func navCollectionIndexEntriesForNavCollectionWithID(_ navCollectionID: Int64) -> [NavCollectionIndexEntry] {
         do {
             return try db.prepare(NavCollectionIndexEntryTable.table.filter(NavCollectionIndexEntryTable.navCollectionID == navCollectionID).order(NavCollectionIndexEntryTable.position)).map { NavCollectionIndexEntryTable.fromRow($0) }
         } catch {

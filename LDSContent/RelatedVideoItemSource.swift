@@ -25,7 +25,7 @@ import Foundation
 public struct RelatedVideoItemSource: Equatable {
     
     public let id: Int64
-    public let mediaURL: NSURL
+    public let mediaURL: URL
     public let type: String
     public let size: CGSize?
     public let fileSize: Int64?

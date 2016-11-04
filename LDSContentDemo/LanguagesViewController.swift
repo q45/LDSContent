@@ -42,21 +42,21 @@ class LanguagesViewController: UIViewController {
     }
     
     lazy var tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .Plain)
+        let tableView = UITableView(frame: .zero, style: .plain)
         tableView.dataSource = self
         tableView.delegate = self
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
     
-    private static let CellIdentifier = "Cell"
+    fileprivate static let CellIdentifier = "Cell"
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         automaticallyAdjustsScrollViewInsets = true
         
-        tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: LanguagesViewController.CellIdentifier)
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: LanguagesViewController.CellIdentifier)
         tableView.estimatedRowHeight = 44
         
         view.addSubview(tableView)
@@ -65,10 +65,10 @@ class LanguagesViewController: UIViewController {
             "tableView": tableView,
         ]
         
-        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("|[tableView]|", options: [], metrics: nil, views: views))
-        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[tableView]|", options: [], metrics: nil, views: views))
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|[tableView]|", options: [], metrics: nil, views: views))
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: [], metrics: nil, views: views))
         
-        contentController.catalogUpdateObservers.add(self, operationQueue: .mainQueue(), self.dynamicType.catalogDidUpdate)
+        contentController.catalogUpdateObservers.add(self, operationQueue: .main, type(of: self).catalogDidUpdate)
         catalog = contentController.catalog
         reloadData()
     }
@@ -78,42 +78,42 @@ class LanguagesViewController: UIViewController {
     var languages = [Language]()
     
     func reloadData() {
-        guard let catalog = catalog, uiLanguage = catalog.languageWithISO639_3Code("eng") else { return }
+        guard let catalog = catalog, let uiLanguage = catalog.languageWithISO639_3Code("eng") else { return }
         
         let languages = catalog.languages()
         
-        let nameByLanguageID = [Int64: String](languages.flatMap { language in
+        let nameByLanguageID = [Int64: String](elements: languages.flatMap { language in
             return catalog.nameForLanguageWithID(language.id, inLanguageWithID: uiLanguage.id).flatMap { (language.id, $0) }
         })
         
         self.uiLanguage = uiLanguage
-        self.languages = languages.sort { language1, language2 in
+        self.languages = languages.sorted { language1, language2 in
             if language1.id == uiLanguage.id {
                 return true
             }
             if language2.id == uiLanguage.id {
                 return false
             }
-            return nameByLanguageID[language1.id] < nameByLanguageID[language2.id]
+            return nameByLanguageID[language1.id] ?? "" < nameByLanguageID[language2.id] ?? ""
         }
         
         tableView.reloadData()
     }
     
-    func catalogDidUpdate(catalog: Catalog) {
+    func catalogDidUpdate(_ catalog: Catalog) {
         self.catalog = catalog
         reloadData()
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            tableView.deselectRowAtIndexPath(indexPath, animated: true)
+            tableView.deselectRow(at: indexPath, animated: true)
         }
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         tableView.flashScrollIndicators()
@@ -125,22 +125,22 @@ class LanguagesViewController: UIViewController {
 
 extension LanguagesViewController: UITableViewDataSource {
     
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
     
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return languages.count
     }
     
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(LanguagesViewController.CellIdentifier, forIndexPath: indexPath)
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: LanguagesViewController.CellIdentifier, for: indexPath)
         
         let language = languages[indexPath.row]
-        if let catalog = catalog, uiLanguage = uiLanguage {
+        if let catalog = catalog, let uiLanguage = uiLanguage {
             cell.textLabel?.text = catalog.nameForLanguageWithID(language.id, inLanguageWithID: uiLanguage.id)
         }
-        cell.accessoryType = .DisclosureIndicator
+        cell.accessoryType = .disclosureIndicator
         
         return cell
     }
@@ -151,14 +151,14 @@ extension LanguagesViewController: UITableViewDataSource {
 
 extension LanguagesViewController: UITableViewDelegate {
     
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let language = languages[indexPath.row]
-        if let catalog = catalog, rootLibraryCollection = catalog.libraryCollectionWithID(language.rootLibraryCollectionID) {
+        if let catalog = catalog, let rootLibraryCollection = catalog.libraryCollectionWithID(language.rootLibraryCollectionID) {
             let viewController = LibraryCollectionViewController(contentController: contentController, libraryCollection: rootLibraryCollection)
             
             navigationController?.pushViewController(viewController, animated: true)
         } else {
-            tableView.deselectRowAtIndexPath(indexPath, animated: false)
+            tableView.deselectRow(at: indexPath, animated: false)
         }
     }
     

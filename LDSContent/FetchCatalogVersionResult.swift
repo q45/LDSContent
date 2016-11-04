@@ -23,6 +23,6 @@
 import Foundation
 
 public enum FetchCatalogVersionResult {
-    case Success(catalogVersion: Int)
-    case Error(errors: [ErrorType])
+    case success(catalogVersion: Int)
+    case error(errors: [Error])
 }

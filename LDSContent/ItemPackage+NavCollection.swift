@@ -36,29 +36,45 @@ extension ItemPackage {
         static let subtitle = Expression<String?>("subtitle")
         static let uri = Expression<String>("uri")
         
-        static func fromRow(row: Row) -> NavCollection {
+        static func fromRow(_ row: Row) -> NavCollection {
             return NavCollection(id: row[id], navSectionID: row[navSectionID], position: row[position], imageRenditions: row[imageRenditions].flatMap { $0.toImageRenditions() }, titleHTML: row[titleHTML], subtitle: row[subtitle], uri: row[uri])
         }
         
     }
     
     public func rootNavCollection() -> NavCollection? {
-        return db.pluck(NavCollectionTable.table.filter(NavCollectionTable.navSectionID == nil)).map { NavCollectionTable.fromRow($0) }
+        do {
+            return try db.pluck(NavCollectionTable.table.filter(NavCollectionTable.navSectionID == nil)).map { NavCollectionTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
-    public func navCollectionWithID(id: Int64) -> NavCollection? {
-        return db.pluck(NavCollectionTable.table.filter(NavCollectionTable.id == id)).map { NavCollectionTable.fromRow($0) }
+    public func navCollectionWithID(_ id: Int64) -> NavCollection? {
+        do {
+            return try db.pluck(NavCollectionTable.table.filter(NavCollectionTable.id == id)).map { NavCollectionTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
-    public func navCollectionWithURI(uri: String) -> NavCollection? {
-        return db.pluck(NavCollectionTable.table.filter(NavCollectionTable.uri == uri)).map { NavCollectionTable.fromRow($0) }
+    public func navCollectionWithURI(_ uri: String) -> NavCollection? {
+        do {
+            return try db.pluck(NavCollectionTable.table.filter(NavCollectionTable.uri == uri)).map { NavCollectionTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
-    public func navCollectionExistsWithURI(uri: String) -> Bool {
-        return db.scalar(NavCollectionTable.table.filter(NavCollectionTable.uri == uri).count) > 0
+    public func navCollectionExistsWithURI(_ uri: String) -> Bool {
+        do {
+            return try db.scalar(NavCollectionTable.table.filter(NavCollectionTable.uri == uri).count) > 0
+        } catch {
+            return false
+        }
     }
     
-    public func navCollectionsForNavSectionWithID(navSectionID: Int64) -> [NavCollection] {
+    public func navCollectionsForNavSectionWithID(_ navSectionID: Int64) -> [NavCollection] {
         do {
             return try db.prepare(NavCollectionTable.table.filter(NavCollectionTable.navSectionID == navSectionID).order(NavCollectionTable.position)).map { NavCollectionTable.fromRow($0) }
         } catch {
@@ -66,14 +82,14 @@ extension ItemPackage {
         }
     }
     
-    public func navCollectionsFromURI(uri: String?) -> [NavCollection] {
+    public func navCollectionsFromURI(_ uri: String?) -> [NavCollection] {
         guard let uri = uri else {
             guard let rootNavCollection = rootNavCollection() else { return [] }
             return [rootNavCollection]
         }
         
         var collection: NavCollection?
-        if let navItem = navItemWithURI(uri), navSection = navSectionWithID(navItem.navSectionID), navCollection = navCollectionWithID(navSection.navCollectionID) {
+        if let navItem = navItemWithURI(uri), let navSection = navSectionWithID(navItem.navSectionID), let navCollection = navCollectionWithID(navSection.navCollectionID) {
             collection = navCollection
         } else if let navCollection = navCollectionWithURI(uri) {
             collection = navCollection
@@ -85,7 +101,7 @@ extension ItemPackage {
         
         while let navCollection = collection {
             collections.append(navCollection)
-            if let sectionID = navCollection.navSectionID, navSection = navSectionWithID(sectionID) {
+            if let sectionID = navCollection.navSectionID, let navSection = navSectionWithID(sectionID) {
                 collection = navCollectionWithID(navSection.navCollectionID)
             } else {
                 collection = nil

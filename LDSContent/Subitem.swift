@@ -31,7 +31,7 @@ public struct Subitem: Equatable {
     public let position: Int
     public let titleHTML: String
     public let title: String
-    public let webURL: NSURL?
+    public let webURL: URL?
     public let contentType: ContentType
     
 }

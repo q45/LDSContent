@@ -22,17 +22,17 @@
 
 import Foundation
 
-public struct Error {
+public struct ContentError {
     
     public static let Domain = "com.crosswaterbridge.LDSContent"
     
     public enum Code: Int {
-        case Unknown = -1000
+        case unknown = -1000
     }
     
-    static func errorWithCode(code: Error.Code, failureReason: String) -> NSError {
+    static func errorWithCode(_ code: ContentError.Code, failureReason: String) -> NSError {
         let userInfo = [NSLocalizedFailureReasonErrorKey: failureReason]
-        return NSError(domain: Error.Domain, code: code.rawValue, userInfo: userInfo)
+        return NSError(domain: ContentError.Domain, code: code.rawValue, userInfo: userInfo)
     }
     
 }

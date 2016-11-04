@@ -62,9 +62,9 @@ class MutableItemPacakgeTests: XCTestCase {
     }
     
     func testSubitem() {
-        let subitem = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/1", docID: "1", docVersion: 1, position: 1, titleHTML: "1 Nephi 1", title: "1 Nephi 1", webURL: NSURL(string: "https://www.lds.org/scriptures/bofm/1-ne/1")!)
+        let subitem = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/1", docID: "1", docVersion: 1, position: 1, titleHTML: "1 Nephi 1", title: "1 Nephi 1", webURL: URL(string: "https://www.lds.org/scriptures/bofm/1-ne/1")!)
         
-        XCTAssertNoThrow(try itemPackage.addSubitemContentWithSubitemID(subitem.id, contentHTML: "<p>CATS: All your base are belong to us.</p>".dataUsingEncoding(NSUTF8StringEncoding)!))
+        XCTAssertNoThrow(try itemPackage.addSubitemContentWithSubitemID(subitem.id, contentHTML: "<p>CATS: All your base are belong to us.</p>".data(using: String.Encoding.utf8)!))
         
         let searchResults = itemPackage.searchResultsForString("base")
         XCTAssertGreaterThan(searchResults.count, 0)
@@ -87,15 +87,15 @@ class MutableItemPacakgeTests: XCTestCase {
     }
     
     func testRelatedAudioItem() {
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(1, mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: .Male))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(1, mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: .male))
         
         let relatedAudioItems = itemPackage.relatedAudioItemsForSubitemWithID(1)
         XCTAssertGreaterThan(relatedAudioItems.count, 0)
     }
     
     func testRelatedVideoItem() {
-        XCTAssertNoThrow(try itemPackage.addRelatedVideoItem(subitemID: 1, posterURL: NSURL(string: "https://www.example.com/poster.jpg")!, videoID: "1", title: "TestVideo"))
-        XCTAssertNoThrow(try itemPackage.addRelatedVideoItemSource(mediaURL: NSURL(string: "https://www.example.com/video.mp4")!, type: "mp4", size: CGSize(width: 1280, height: 720), fileSize: 123456789, relatedVideoItemID: 1))
+        XCTAssertNoThrow(try itemPackage.addRelatedVideoItem(subitemID: 1, posterURL: URL(string: "https://www.example.com/poster.jpg")!, videoID: "1", title: "TestVideo"))
+        XCTAssertNoThrow(try itemPackage.addRelatedVideoItemSource(mediaURL: URL(string: "https://www.example.com/video.mp4")!, type: "mp4", size: CGSize(width: 1280, height: 720), fileSize: 123456789, relatedVideoItemID: 1))
         
         let relatedVideoItems = itemPackage.relatedVideoItemsForSubitemWithID(1)
         XCTAssertGreaterThan(relatedVideoItems.count, 0)
@@ -105,7 +105,7 @@ class MutableItemPacakgeTests: XCTestCase {
     }
     
     func testNavCollection() {
-        let navCollection = try! itemPackage.addNavCollectionWithNavSectionID(nil, position: 1, imageRenditions: [ImageRendition(size: CGSize(width: 10, height: 10), url: NSURL(string: "https://example.org/example.png")!)], titleHTML: "title", subtitle: nil, uri: "/scriptures/bofm")
+        let navCollection = try! itemPackage.addNavCollectionWithNavSectionID(nil, position: 1, imageRenditions: [ImageRendition(size: CGSize(width: 10, height: 10), url: URL(string: "https://example.org/example.png")!)], titleHTML: "title", subtitle: nil, uri: "/scriptures/bofm")
         
         let navCollection2 = itemPackage.navCollectionWithID(navCollection.id)
         XCTAssertEqual(navCollection2, navCollection)
@@ -126,7 +126,7 @@ class MutableItemPacakgeTests: XCTestCase {
     }
     
     func testNavItem() {
-        let navItem = try! itemPackage.addNavItemWithNavSectionID(1, position: 1, imageRenditions: [ImageRendition(size: CGSize(width: 10, height: 10), url: NSURL(string: "https://example.org/example.png")!)], titleHTML: "title", subtitle: nil, preview: nil, uri: "sparky", subitemID: 1)
+        let navItem = try! itemPackage.addNavItemWithNavSectionID(1, position: 1, imageRenditions: [ImageRendition(size: CGSize(width: 10, height: 10), url: URL(string: "https://example.org/example.png")!)], titleHTML: "title", subtitle: nil, preview: nil, uri: "sparky", subitemID: 1)
         
         let navItem2 = itemPackage.navItemWithURI("sparky")
         XCTAssertEqual(navItem2, navItem)
@@ -137,84 +137,84 @@ class MutableItemPacakgeTests: XCTestCase {
     }
     
     func testQueryWithVoicesOnAudioItemWithVoices() {
-        let subitemWithMaleAndFemaleVoices = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/1", docID: "1", docVersion: 1, position: 1, titleHTML: "1 Nephi 1", title: "1 Nephi 1", webURL: NSURL(string: "https://www.lds.org/scriptures/bofm/1-ne/1")!)
+        let subitemWithMaleAndFemaleVoices = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/1", docID: "1", docVersion: 1, position: 1, titleHTML: "1 Nephi 1", title: "1 Nephi 1", webURL: URL(string: "https://www.lds.org/scriptures/bofm/1-ne/1")!)
         
         // Add related audio with Male Voice
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(1))))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(1))))
         // Add related audio with Female Voice
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(2))))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(2))))
         // Add related audio with nil Voice
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(3))))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(3))))
         
         // Voice option is selected, there is a matching related audio item with that voice
-        let relatedAudioItemWithMaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithMaleAndFemaleVoices.uri, relatedAudioVoice: .Male)
+        let relatedAudioItemWithMaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithMaleAndFemaleVoices.uri, relatedAudioVoice: .male)
         XCTAssertNotNil(relatedAudioItemWithMaleVoice)
-        XCTAssertTrue(relatedAudioItemWithMaleVoice!.voice == .Male)
+        XCTAssertTrue(relatedAudioItemWithMaleVoice!.voice == .male)
         
-        let relatedAudioItemWithFemaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithMaleAndFemaleVoices.uri, relatedAudioVoice: .Female)
+        let relatedAudioItemWithFemaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithMaleAndFemaleVoices.uri, relatedAudioVoice: .female)
         XCTAssertNotNil(relatedAudioItemWithFemaleVoice)
-        XCTAssertTrue(relatedAudioItemWithFemaleVoice!.voice == .Female)
+        XCTAssertTrue(relatedAudioItemWithFemaleVoice!.voice == .female)
     
     }
     
     func testQueryWithVoicesOnAudioItemWithNilVoices() {
-        let subitemWithMaleAndFemaleVoices = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/1", docID: "1", docVersion: 1, position: 1, titleHTML: "1 Nephi 1", title: "1 Nephi 1", webURL: NSURL(string: "https://www.lds.org/scriptures/bofm/1-ne/1")!)
+        let subitemWithMaleAndFemaleVoices = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/1", docID: "1", docVersion: 1, position: 1, titleHTML: "1 Nephi 1", title: "1 Nephi 1", webURL: URL(string: "https://www.lds.org/scriptures/bofm/1-ne/1")!)
         
         // Add only related audio items with nil voices
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(3))))
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(3))))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(3))))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(3))))
         
         // Voice option is selected, there is a matching related audio item with that voice
-        let relatedAudioItemWithMaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithMaleAndFemaleVoices.uri, relatedAudioVoice: .Male)
+        let relatedAudioItemWithMaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithMaleAndFemaleVoices.uri, relatedAudioVoice: .male)
         XCTAssertNotNil(relatedAudioItemWithMaleVoice)
         XCTAssertTrue(relatedAudioItemWithMaleVoice!.voice == nil)
         
-        let relatedAudioItemWithFemaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithMaleAndFemaleVoices.uri, relatedAudioVoice: .Female)
+        let relatedAudioItemWithFemaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithMaleAndFemaleVoices.uri, relatedAudioVoice: .female)
         XCTAssertNotNil(relatedAudioItemWithFemaleVoice)
         XCTAssertTrue(relatedAudioItemWithFemaleVoice!.voice == nil)
         
     }
     
     func testQueryWithNilVoiceOnAudioItemWithVoices() {
-        let subitemWithMaleAndFemaleVoices = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/1", docID: "1", docVersion: 1, position: 1, titleHTML: "1 Nephi 1", title: "1 Nephi 1", webURL: NSURL(string: "https://www.lds.org/scriptures/bofm/1-ne/1")!)
+        let subitemWithMaleAndFemaleVoices = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/1", docID: "1", docVersion: 1, position: 1, titleHTML: "1 Nephi 1", title: "1 Nephi 1", webURL: URL(string: "https://www.lds.org/scriptures/bofm/1-ne/1")!)
         
         // Add related audio with Male Voice
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(1))))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(1))))
         // Add related audio with Female Voice
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(2))))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(2))))
         
         // No voice option is passed, and there is only Male/Female related audio for a chapter
         let relatedAudioItemWithMaleOrFemaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithMaleAndFemaleVoices.uri, relatedAudioVoice: nil)
         XCTAssertNotNil(relatedAudioItemWithMaleOrFemaleVoice)
         let voice = relatedAudioItemWithMaleOrFemaleVoice!.voice
-        XCTAssertTrue(voice == .Female || voice == .Male)
+        XCTAssertTrue(voice == .female || voice == .male)
 
     }
     
     func testQueryWithWrongVoicesOnAudioItemWithVoices() {
-        let subitemWithMaleVoice = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/1", docID: "1", docVersion: 1, position: 1, titleHTML: "1 Nephi 1", title: "1 Nephi 1", webURL: NSURL(string: "https://www.lds.org/scriptures/bofm/1-ne/1")!)
+        let subitemWithMaleVoice = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/1", docID: "1", docVersion: 1, position: 1, titleHTML: "1 Nephi 1", title: "1 Nephi 1", webURL: URL(string: "https://www.lds.org/scriptures/bofm/1-ne/1")!)
         
-        let subitemWithFemaleVoice = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/2", docID: "2", docVersion: 1, position: 2, titleHTML: "1 Nephi 2", title: "1 Nephi 2", webURL: NSURL(string: "https://www.lds.org/scriptures/bofm/1-ne/2")!)
+        let subitemWithFemaleVoice = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/2", docID: "2", docVersion: 1, position: 2, titleHTML: "1 Nephi 2", title: "1 Nephi 2", webURL: URL(string: "https://www.lds.org/scriptures/bofm/1-ne/2")!)
         
-        let subitemWithFemaleVoiceAndNil = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/3", docID: "3", docVersion: 1, position: 3, titleHTML: "1 Nephi 3", title: "1 Nephi 3", webURL: NSURL(string: "https://www.lds.org/scriptures/bofm/1-ne/3")!)
+        let subitemWithFemaleVoiceAndNil = try! itemPackage.addSubitemWithURI("/scriptures/bofm/1-ne/3", docID: "3", docVersion: 1, position: 3, titleHTML: "1 Nephi 3", title: "1 Nephi 3", webURL: URL(string: "https://www.lds.org/scriptures/bofm/1-ne/3")!)
         
         // Add related audio with Male Voice to subitemWithMaleVoice
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(1))))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(1), mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(1))))
         // Add related audio with Female Voice to subitemWithFemaleVoice
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(2), mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(2))))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(2), mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(2))))
         
         // Add related audio with Female Voice and Nil voice to subitemWithFemaleVoiceAndNil
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(3), mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(2))))
-        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(3), mediaURL: NSURL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(3))))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(3), mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(2))))
+        XCTAssertNoThrow(try itemPackage.addRelatedAudioItemWithSubitemID(Int64(3), mediaURL: URL(string: "https://www.example.com/audio.mp3")!, fileSize: 1000, duration: 370, voice: RelatedAudioVoice(rawValue: Int64(3))))
         
         // Female voice option is passed, but there is only related audio with a male voice
-        let relatedAudioItemWithFemaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithMaleVoice.uri, relatedAudioVoice: .Female)
+        let relatedAudioItemWithFemaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithMaleVoice.uri, relatedAudioVoice: .female)
         
         // Male voice option is passed, but there is only related audio with a female voice
-        let relatedAudioItemWithMaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithFemaleVoice.uri, relatedAudioVoice: .Male)
+        let relatedAudioItemWithMaleVoice = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithFemaleVoice.uri, relatedAudioVoice: .male)
         
         // Male voice option is passed, but there is only related audio with a female voice and nil voice
-        let relatedAudioItemWithMaleVoiceOrNil = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithFemaleVoiceAndNil.uri, relatedAudioVoice: .Male)
+        let relatedAudioItemWithMaleVoiceOrNil = itemPackage.relatedAudioItemForSubitemWithURI(subitemWithFemaleVoiceAndNil.uri, relatedAudioVoice: .male)
         
         // Make sure we still get an audio item
         XCTAssertNotNil(relatedAudioItemWithFemaleVoice)
@@ -222,21 +222,21 @@ class MutableItemPacakgeTests: XCTestCase {
         XCTAssertNotNil(relatedAudioItemWithMaleVoiceOrNil)
         
         // Make sure the related audio item returned is the only voice available which in this case is the opposite gender.
-        XCTAssertTrue(relatedAudioItemWithFemaleVoice!.voice == .Male)
-        XCTAssertTrue(relatedAudioItemWithMaleVoice!.voice == .Female)
+        XCTAssertTrue(relatedAudioItemWithFemaleVoice!.voice == .male)
+        XCTAssertTrue(relatedAudioItemWithMaleVoice!.voice == .female)
         
         // Since the male voice requested is not present, but nil and female is, voice defaults to nil.
         XCTAssertTrue(relatedAudioItemWithMaleVoiceOrNil!.voice == nil)
         
     }
     
-    let tempPackageURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
+    let tempPackageURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
     
     override func setUp() {
         super.setUp()
         
         do {
-            try NSFileManager.defaultManager().createDirectoryAtURL(tempPackageURL, withIntermediateDirectories: true, attributes: nil)
+            try FileManager.default.createDirectory(at: tempPackageURL, withIntermediateDirectories: true, attributes: nil)
             itemPackage = try MutableItemPackage(url: tempPackageURL, iso639_1Code: "en", iso639_3Code: "eng")
         } catch {
             itemPackage = nil
@@ -246,7 +246,7 @@ class MutableItemPacakgeTests: XCTestCase {
     override func tearDown() {
         super.tearDown()
         
-        let _ = try? NSFileManager.defaultManager().removeItemAtURL(tempPackageURL)
+        let _ = try? FileManager.default.removeItem(at: tempPackageURL)
     }
     
 }

@@ -30,20 +30,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     lazy var contentController: ContentController! = {
-        let location = NSFileManager.privateDocumentsURL.URLByAppendingPathComponent("Content")
-        let baseURL = NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!
+        let location = FileManager.privateDocumentsURL.appendingPathComponent("Content")
+        let baseURL = URL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!
         do {
-            try NSFileManager.defaultManager().createDirectoryAtURL(location, withIntermediateDirectories: true, attributes: nil)
+            try FileManager.default.createDirectory(at: location, withIntermediateDirectories: true, attributes: nil)
         } catch {}
         return try? ContentController(location: location, baseURL: baseURL)
     }()
     
-    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         do {
-            try NSFileManager.defaultManager().createDirectoryAtURL(NSFileManager.privateDocumentsURL, withIntermediateDirectories: true, attributes: nil)
+            try FileManager.default.createDirectory(at: FileManager.privateDocumentsURL, withIntermediateDirectories: true, attributes: nil)
         } catch {}
         do {
-            try NSFileManager.privateDocumentsURL.setResourceValue(true, forKey: NSURLIsExcludedFromBackupKey)
+            var resourceValues = URLResourceValues()
+            resourceValues.isExcludedFromBackup = true
+            var url = FileManager.privateDocumentsURL
+            try url.setResourceValues(resourceValues)
         } catch {}
         
         
@@ -51,19 +54,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         let navigationController = UINavigationController(rootViewController: viewController)
         
-        window = UIWindow(frame: UIScreen.mainScreen().bounds)
+        window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
         
         return true
     }
     
-    func applicationDidBecomeActive(application: UIApplication) {
+    func applicationDidBecomeActive(_ application: UIApplication) {
         NSLog("Updating catalog")
         
         let showUI = (contentController.catalog == nil)
         if showUI {
-            SVProgressHUD.setDefaultMaskType(.Clear)
+            SVProgressHUD.setDefaultMaskType(.clear)
             SVProgressHUD.showProgress(0, status: "Installing catalog")
         }
         
@@ -72,31 +75,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             guard previousAmount < amount - 0.1 else { return }
             previousAmount = amount
             
-            dispatch_async(dispatch_get_main_queue()) {
+            DispatchQueue.main.async {
                 SVProgressHUD.showProgress(amount, status: "Installing catalog")
             }
         }, completion: { result in
             switch result {
-            case let .Success(catalog):
+            case let .success(catalog):
                 NSLog("Updated catalog to v%li.%li", catalog.schemaVersion, catalog.catalogVersion)
-            case let .PartialSuccess(catalog, errors):
+            case let .partialSuccess(catalog, errors):
                 NSLog("Updated catalog to v%li.%li", catalog.schemaVersion, catalog.catalogVersion)
                 for (name, errors) in errors {
                     NSLog("Failed to update catalog \(name): %@", "\(errors)")
                 }
-            case let .Error(errors):
+            case let .error(errors):
                 NSLog("Failed to update catalog: %@", "\(errors)")
             }
             
             if showUI {
-                dispatch_async(dispatch_get_main_queue()) {
+                DispatchQueue.main.async {
                     switch result {
-                    case .Success, .PartialSuccess:
-                        SVProgressHUD.setDefaultMaskType(.None)
-                        SVProgressHUD.showSuccessWithStatus("Installed")
-                    case .Error:
-                        SVProgressHUD.setDefaultMaskType(.None)
-                        SVProgressHUD.showErrorWithStatus("Failed")
+                    case .success, .partialSuccess:
+                        SVProgressHUD.setDefaultMaskType(.none)
+                        SVProgressHUD.showSuccess(withStatus: "Installed")
+                    case .error:
+                        SVProgressHUD.setDefaultMaskType(.none)
+                        SVProgressHUD.showError(withStatus: "Failed")
                     }
                 }
             }

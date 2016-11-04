@@ -21,16 +21,17 @@
 //
 
 import Foundation
-import Operations
+import ProcedureKit
 
-class FetchCatalogVersionOperation: Operation, ResultOperationType {
+class FetchCatalogVersionOperation: Procedure, ResultInjection {
     
     let session: Session
-    let baseURL: NSURL
+    let baseURL: URL
     
-    private(set) var result: Int?
+    var result: PendingValue<Int> = .pending
+    var requirement: PendingValue<Void> = .void
     
-    init(session: Session, baseURL: NSURL) {
+    init(session: Session, baseURL: URL) {
         self.session = session
         self.baseURL = baseURL
         
@@ -38,40 +39,40 @@ class FetchCatalogVersionOperation: Operation, ResultOperationType {
     }
     
     override func execute() {
-        let indexURL = baseURL.URLByAppendingPathComponent("v3/index.json")
-        let request = NSMutableURLRequest(URL: indexURL)
+        let indexURL = baseURL.appendingPathComponent("v3/index.json")
+        let request = URLRequest(url: indexURL)
         
-        let task = session.urlSession.dataTaskWithRequest(request) { data, response, error in
-            self.session.networkActivityObservers.notify(.Stop)
+        let task = session.urlSession.dataTask(with: request, completionHandler: { data, response, error in
+            self.session.networkActivityObservers.notify(.stop)
             
             if let error = error {
-                self.finish(error)
+                self.finish(withError: error)
                 return
             }
             
             guard let data = data else {
-                self.finish(Error.errorWithCode(.Unknown, failureReason: "Missing response data"))
+                self.finish(withError: ContentError.errorWithCode(.unknown, failureReason: "Missing response data"))
                 return
             }
             
-            let jsonObject: AnyObject
+            let jsonObject: Any
             do {
-                jsonObject = try NSJSONSerialization.JSONObjectWithData(data, options: [])
+                jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
             } catch let error as NSError {
-                self.finish(error)
+                self.finish(withError: error)
                 return
             }
             
-            guard let jsonDictionary = jsonObject as? [String: AnyObject], catalogVersion = jsonDictionary["catalogVersion"] as? Int else {
-                self.finish(Error.errorWithCode(.Unknown, failureReason: "Unexpected JSON response"))
+            guard let jsonDictionary = jsonObject as? [String: AnyObject], let catalogVersion = jsonDictionary["catalogVersion"] as? Int else {
+                self.finish(withError: ContentError.errorWithCode(.unknown, failureReason: "Unexpected JSON response"))
                 return
             }
             
-            self.result = catalogVersion
+            self.result = .ready(catalogVersion)
             
             self.finish()
-        }
-        session.networkActivityObservers.notify(.Start)
+        }) 
+        session.networkActivityObservers.notify(.start)
         task.resume()
     }
     

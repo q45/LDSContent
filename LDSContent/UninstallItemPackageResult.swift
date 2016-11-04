@@ -23,6 +23,6 @@
 import Foundation
 
 public enum UninstallItemPackageResult {
-    case Success
-    case Error(errors: [NSError])
+    case success
+    case error(errors: [NSError])
 }

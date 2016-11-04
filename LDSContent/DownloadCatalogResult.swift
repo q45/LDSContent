@@ -23,7 +23,7 @@
 import Foundation
 
 public enum DownloadCatalogResult {
-    case Success(version: Int)
-    case AlreadyCurrent
-    case Error(errors: [ErrorType])
+    case success(version: Int)
+    case alreadyCurrent
+    case error(errors: [Error])
 }

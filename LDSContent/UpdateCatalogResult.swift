@@ -23,7 +23,7 @@
 import Foundation
 
 public enum UpdateCatalogResult {
-    case Success(catalog: Catalog)
-    case AlreadyCurrent(catalog: Catalog)
-    case Error(errors: [ErrorType])
+    case success(catalog: Catalog)
+    case alreadyCurrent(catalog: Catalog)
+    case error(errors: [Error])
 }

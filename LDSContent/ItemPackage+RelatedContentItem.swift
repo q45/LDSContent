@@ -37,14 +37,14 @@ extension ItemPackage {
         static let wordOffset = Expression<Int>("word_offset")
         static let byteLocation = Expression<Int>("byte_location")
         
-        static func fromRow(row: Row) -> RelatedContentItem {
+        static func fromRow(_ row: Row) -> RelatedContentItem {
             return RelatedContentItem(id: row[id], subitemID: row[subitemID], refID: row[refID], labelHTML: row[labelHTML], originID: row[originID], contentHTML: row[contentHTML], wordOffset: row[wordOffset], byteLocation: row[byteLocation])
         }
         
     }
     
     // TODO: Do we even still need this?
-    public func relatedContentItemsForSubitemWithID(subitemID: Int64) -> [RelatedContentItem] {
+    public func relatedContentItemsForSubitemWithID(_ subitemID: Int64) -> [RelatedContentItem] {
         do {
             return try db.prepare(RelatedContentItemTable.table.filter(RelatedContentItemTable.subitemID == subitemID).order(RelatedContentItemTable.byteLocation)).map { RelatedContentItemTable.fromRow($0) }
         } catch {
@@ -52,7 +52,7 @@ extension ItemPackage {
         }
     }
     
-    public func relatedContentItemsForSubitemWithURI(subitemURI: String) -> [RelatedContentItem] {
+    public func relatedContentItemsForSubitemWithURI(_ subitemURI: String) -> [RelatedContentItem] {
         do {
             return try db.prepare(RelatedContentItemTable.table.join(SubitemTable.table.filter(SubitemTable.uri == subitemURI), on: RelatedContentItemTable.subitemID == SubitemTable.id).order(RelatedContentItemTable.byteLocation)).map { RelatedContentItemTable.fromRow($0) }
         } catch {

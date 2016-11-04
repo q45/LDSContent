@@ -29,7 +29,7 @@ public struct NavCollectionIndexEntry: Equatable {
     public let position: Int
     public let title: String
     public let listIndex: Int
-    public let indexPath: NSIndexPath
+    public let indexPath: IndexPath
     
 }
 

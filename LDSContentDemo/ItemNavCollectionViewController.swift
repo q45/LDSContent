@@ -48,21 +48,21 @@ class ItemNavCollectionViewController: UIViewController {
     }
     
     lazy var tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .Plain)
+        let tableView = UITableView(frame: .zero, style: .plain)
         tableView.dataSource = self
         tableView.delegate = self
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
     
-    private static let CellIdentifier = "Cell"
+    fileprivate static let CellIdentifier = "Cell"
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         automaticallyAdjustsScrollViewInsets = true
         
-        tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: ItemNavCollectionViewController.CellIdentifier)
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: ItemNavCollectionViewController.CellIdentifier)
         tableView.estimatedRowHeight = 44
         
         view.addSubview(tableView)
@@ -71,17 +71,17 @@ class ItemNavCollectionViewController: UIViewController {
             "tableView": tableView,
         ]
         
-        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("|[tableView]|", options: [], metrics: nil, views: views))
-        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[tableView]|", options: [], metrics: nil, views: views))
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|[tableView]|", options: [], metrics: nil, views: views))
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: [], metrics: nil, views: views))
         
-        contentController.itemPackageInstallObservers.add(self, operationQueue: .mainQueue(), self.dynamicType.itemPackageDidUpdate)
+        contentController.itemPackageInstallObservers.add(self, operationQueue: .main, type(of: self).itemPackageDidUpdate)
         itemPackage = contentController.itemPackageForItemWithID(itemID)
         reloadData()
     }
     
     var itemPackage: ItemPackage?
     var sections = [(itemNavSection: NavSection, itemNavNodes: [NavNode])]()
-    var sectionIndexes = [(title: String, indexPath: NSIndexPath)]()
+    var sectionIndexes = [(title: String, indexPath: IndexPath)]()
     
     func reloadData() {
         guard let itemPackage = itemPackage else { return }
@@ -91,7 +91,7 @@ class ItemNavCollectionViewController: UIViewController {
             return (itemNavSection: itemNavSection, itemNavNodes: itemPackage.navNodesForNavSectionWithID(itemNavSection.id))
         }
         
-        var previousIndexPath: NSIndexPath?
+        var previousIndexPath: IndexPath?
         sectionIndexes = itemPackage.navCollectionIndexEntriesForNavCollectionWithID(itemNavCollection.id).flatMap { indexEntry in
             guard let indexPath = indexEntry.indexPath ?? previousIndexPath else { return nil }
             
@@ -100,22 +100,22 @@ class ItemNavCollectionViewController: UIViewController {
         }
     }
     
-    func itemPackageDidUpdate(item: Item) {
+    func itemPackageDidUpdate(_ item: Item) {
         guard item.id == itemID else { return }
         
         self.itemPackage = contentController.itemPackageForItemWithID(item.id)
         reloadData()
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            tableView.deselectRowAtIndexPath(indexPath, animated: true)
+            tableView.deselectRow(at: indexPath, animated: true)
         }
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         tableView.flashScrollIndicators()
@@ -127,40 +127,40 @@ class ItemNavCollectionViewController: UIViewController {
 
 extension ItemNavCollectionViewController: UITableViewDataSource {
     
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return sections.count
     }
     
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return sections[section].itemNavNodes.count
     }
     
-    func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return sections[section].itemNavSection.title
     }
     
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(ItemNavCollectionViewController.CellIdentifier, forIndexPath: indexPath)
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: ItemNavCollectionViewController.CellIdentifier, for: indexPath)
         
         let itemNavNode = sections[indexPath.section].itemNavNodes[indexPath.row]
         cell.textLabel?.text = itemNavNode.titleHTML
         
         if itemNavNode is NavCollection {
-            cell.accessoryType = .DisclosureIndicator
+            cell.accessoryType = .disclosureIndicator
         } else {
-            cell.accessoryType = .None
+            cell.accessoryType = .none
         }
         
         return cell
     }
     
-    func sectionIndexTitlesForTableView(tableView: UITableView) -> [String]? {
+    func sectionIndexTitles(for tableView: UITableView) -> [String]? {
         return sectionIndexes.map { $0.title }
     }
     
-    func tableView(tableView: UITableView, sectionForSectionIndexTitle title: String, atIndex index: Int) -> Int {
+    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
         let sectionIndex = sectionIndexes[index]
-        tableView.scrollToRowAtIndexPath(sectionIndex.indexPath, atScrollPosition: .Top, animated: false)
+        tableView.scrollToRow(at: sectionIndex.indexPath, at: .top, animated: false)
         return NSNotFound
     }
     
@@ -170,7 +170,7 @@ extension ItemNavCollectionViewController: UITableViewDataSource {
 
 extension ItemNavCollectionViewController: UITableViewDelegate {
     
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let itemNavNode = sections[indexPath.section].itemNavNodes[indexPath.row]
         switch itemNavNode {
         case let itemNavCollection as NavCollection:
@@ -178,9 +178,9 @@ extension ItemNavCollectionViewController: UITableViewDelegate {
             
             navigationController?.pushViewController(viewController, animated: true)
         case _ as NavItem:
-            tableView.deselectRowAtIndexPath(indexPath, animated: false)
+            tableView.deselectRow(at: indexPath, animated: false)
         default:
-            tableView.deselectRowAtIndexPath(indexPath, animated: false)
+            tableView.deselectRow(at: indexPath, animated: false)
         }
     }
     

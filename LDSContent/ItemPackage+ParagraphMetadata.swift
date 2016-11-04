@@ -36,17 +36,17 @@ extension ItemPackage {
         static let startIndex = Expression<Int>("start_index")
         static let endIndex = Expression<Int>("end_index")
         
-        static func fromRow(row: Row) -> ParagraphMetadata {
+        static func fromRow(_ row: Row) -> ParagraphMetadata {
             return ParagraphMetadata(id: row[id], subitemID: row[subitemID], paragraphID: row[paragraphID], paragraphAID: row[paragraphAID], verseNumber: row[verseNumber], range: NSRange(location: row[startIndex], length: row[endIndex] - row[startIndex]))
         }
         
-        static func fromNamespacedRow(row: Row) -> ParagraphMetadata {
+        static func fromNamespacedRow(_ row: Row) -> ParagraphMetadata {
             return ParagraphMetadata(id: row[ParagraphMetadataTable.table[id]], subitemID: row[ParagraphMetadataTable.table[subitemID]], paragraphID: row[ParagraphMetadataTable.table[paragraphID]], paragraphAID: row[ParagraphMetadataTable.table[paragraphAID]], verseNumber: row[ParagraphMetadataTable.table[verseNumber]], range: NSRange(location: row[ParagraphMetadataTable.table[startIndex]], length: row[ParagraphMetadataTable.table[endIndex]] - row[ParagraphMetadataTable.table[startIndex]]))
         }
         
     }
     
-    public func paragraphMetadataForParagraphIDs(paragraphIDs: [String], subitemID: Int64) -> [ParagraphMetadata] {
+    public func paragraphMetadataForParagraphIDs(_ paragraphIDs: [String], subitemID: Int64) -> [ParagraphMetadata] {
         do {
             return try db.prepare(ParagraphMetadataTable.table.filter(paragraphIDs.contains(ParagraphMetadataTable.paragraphID) && ParagraphMetadataTable.subitemID == subitemID)).map { ParagraphMetadataTable.fromRow($0) }
         } catch {
@@ -54,7 +54,7 @@ extension ItemPackage {
         }
     }
     
-    public func paragraphMetadataForSubitemID(subitemID: Int64) -> [ParagraphMetadata] {
+    public func paragraphMetadataForSubitemID(_ subitemID: Int64) -> [ParagraphMetadata] {
         do {
             return try db.prepare(ParagraphMetadataTable.table.filter(ParagraphMetadataTable.subitemID == subitemID).order(ParagraphMetadataTable.startIndex)).map { ParagraphMetadataTable.fromRow($0) }
         } catch {
@@ -62,7 +62,7 @@ extension ItemPackage {
         }
     }
     
-    public func paragraphMetadataForParagraphAIDs(paragraphAIDs: [String], subitemID: Int64) -> [ParagraphMetadata] {
+    public func paragraphMetadataForParagraphAIDs(_ paragraphAIDs: [String], subitemID: Int64) -> [ParagraphMetadata] {
         do {
             return try db.prepare(ParagraphMetadataTable.table.filter(paragraphAIDs.contains(ParagraphMetadataTable.paragraphAID) && ParagraphMetadataTable.subitemID == subitemID)).map { ParagraphMetadataTable.fromRow($0) }
         } catch {
@@ -70,7 +70,7 @@ extension ItemPackage {
         }
     }
     
-    public func paragraphMetadataForParagraphAIDs(paragraphAIDs: [String], docID: String) -> [ParagraphMetadata] {
+    public func paragraphMetadataForParagraphAIDs(_ paragraphAIDs: [String], docID: String) -> [ParagraphMetadata] {
         do {
             return try db.prepare(ParagraphMetadataTable.table.join(SubitemTable.table, on: ParagraphMetadataTable.subitemID == SubitemTable.table[SubitemTable.id]).filter(paragraphAIDs.contains(ParagraphMetadataTable.paragraphAID) && SubitemTable.docID == docID)).map { ParagraphMetadataTable.fromNamespacedRow($0) }
         } catch {
@@ -78,8 +78,12 @@ extension ItemPackage {
         }
     }
     
-    public func paragraphMetadataForParagraphID(paragraphID: String, subitemID: Int64) -> ParagraphMetadata? {
-        return db.pluck(ParagraphMetadataTable.table.filter(ParagraphMetadataTable.subitemID == subitemID && ParagraphMetadataTable.paragraphID == paragraphID)).map { ParagraphMetadataTable.fromRow($0) }
+    public func paragraphMetadataForParagraphID(_ paragraphID: String, subitemID: Int64) -> ParagraphMetadata? {
+        do {
+            return try db.pluck(ParagraphMetadataTable.table.filter(ParagraphMetadataTable.subitemID == subitemID && ParagraphMetadataTable.paragraphID == paragraphID)).map { ParagraphMetadataTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
     public func orderedParagraphAIDs(fromParagraphAIDs paragraphAIDs: [String], subitemID: Int64) -> [String] {
@@ -91,12 +95,12 @@ extension ItemPackage {
     }
     
     public func orderedParagraphAIDs(fromParagraphURIs paragraphURIs: [String]) -> [String] {
-        guard let firstParagraphURI = paragraphURIs.first, index = firstParagraphURI.rangeOfString(".", options: .BackwardsSearch)?.startIndex else { return [] }
+        guard let firstParagraphURI = paragraphURIs.first, let index = firstParagraphURI.range(of: ".", options: .backwards)?.lowerBound else { return [] }
         
-        let subitemURI = firstParagraphURI.substringToIndex(index)
+        let subitemURI = firstParagraphURI.substring(to: index)
         let paragraphIDs = paragraphURIs.flatMap { uri -> String? in
-            guard let endIndex = uri.rangeOfString(".", options: .BackwardsSearch)?.endIndex else { return nil }
-            return uri.substringFromIndex(endIndex)
+            guard let endIndex = uri.range(of: ".", options: .backwards)?.upperBound else { return nil }
+            return uri.substring(from: endIndex)
         }
         
         do {
@@ -130,7 +134,7 @@ extension ItemPackage {
         }
     }
     
-    func verseNumbersForSubitemWithDocID(docID: String, paragraphAIDs: [String]) -> [String] {
+    func verseNumbersForSubitemWithDocID(_ docID: String, paragraphAIDs: [String]) -> [String] {
         do {
             return try db.prepare(ParagraphMetadataTable.table.select(ParagraphMetadataTable.verseNumber).filter(paragraphAIDs.contains(ParagraphMetadataTable.paragraphAID)).join(SubitemTable.table.filter(SubitemTable.docID == docID), on: ParagraphMetadataTable.subitemID == SubitemTable.table[SubitemTable.id]).order(ParagraphMetadataTable.startIndex)).flatMap { $0[ParagraphMetadataTable.verseNumber] }
         } catch {

@@ -37,7 +37,7 @@ class CatalogTests: XCTestCase {
     }
     
     func testSource() {
-        let defaultSource = Source(id: 1, name: "default", type: .Default)
+        let defaultSource = Source(id: 1, name: "default", type: .standard)
         
         XCTAssertEqual(catalog.sources(), [defaultSource])
         XCTAssertEqual(catalog.sourceWithID(1), defaultSource)
@@ -77,7 +77,7 @@ class CatalogTests: XCTestCase {
         XCTAssertEqual(item3!.uri, "/scriptures/bofm")
     }
     
-    @available(*, deprecated=1.0.0)
+    @available(*, deprecated: 1.0.0)
     func testDeprecatedItems() {
         let items = catalog.items()
         XCTAssertGreaterThan(items.count, 1000)
@@ -106,7 +106,7 @@ class CatalogTests: XCTestCase {
         XCTAssertEqual(catalog.languageWithRootLibraryCollectionID(language.rootLibraryCollectionID)!, language)
     }
     
-    @available(*, deprecated=1.0.0)
+    @available(*, deprecated: 1.0.0)
     func testDeprecatedLanguages() {
         let languages = catalog.languages()
         XCTAssertGreaterThan(languages.count, 20)
@@ -150,7 +150,7 @@ class CatalogTests: XCTestCase {
         let libraryCollections = catalog.libraryCollections()
         XCTAssertGreaterThan(libraryCollections.count, 0)
         
-        let scripturesLibraryCollection = libraryCollections.find { $0.type == .Scriptures }!
+        let scripturesLibraryCollection = libraryCollections.find { $0.type == .scriptures }!
         
         let items = catalog.itemsForLibraryCollectionWithID(scripturesLibraryCollection.id)
         XCTAssertGreaterThan(items.count, 0)
@@ -169,12 +169,12 @@ class CatalogTests: XCTestCase {
         XCTAssertGreaterThan(libraryCollections3.count, 0)
     }
     
-    @available(*, deprecated=1.0.0)
+    @available(*, deprecated: 1.0.0)
     func testDeprecatedLibraryCollections() {
         let libraryCollections = catalog.libraryCollections()
         XCTAssertGreaterThan(libraryCollections.count, 0)
         
-        let scripturesLibraryCollection = libraryCollections.find { $0.type == .Scriptures }!
+        let scripturesLibraryCollection = libraryCollections.find { $0.type == .scriptures }!
         
         let libraryCollection = catalog.libraryCollectionWithExternalID(scripturesLibraryCollection.externalID)!
         XCTAssertEqual(libraryCollection, scripturesLibraryCollection)
@@ -187,7 +187,7 @@ class CatalogTests: XCTestCase {
     }
     
     func testLibrarySections() {
-        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .Scriptures }!
+        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .scriptures }!
         
         let librarySections = catalog.librarySectionsForLibraryCollectionWithID(scripturesLibraryCollection.id)
         XCTAssertGreaterThan(librarySections.count, 0)
@@ -198,9 +198,9 @@ class CatalogTests: XCTestCase {
         XCTAssertEqual(librarySection2, librarySection)
     }
     
-    @available(*, deprecated=1.0.0)
+    @available(*, deprecated: 1.0.0)
     func testDeprecatedLibrarySections() {
-        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .Scriptures }!
+        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .scriptures }!
         
         let librarySections = catalog.librarySectionsForLibraryCollectionWithExternalID(scripturesLibraryCollection.externalID)
         XCTAssertGreaterThan(librarySections.count, 0)
@@ -212,7 +212,7 @@ class CatalogTests: XCTestCase {
     }
     
     func testLibraryItems() {
-        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .Scriptures }!
+        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .scriptures }!
         let scripturesLibrarySection = catalog.librarySectionsForLibraryCollectionWithID(scripturesLibraryCollection.id).first!
         
         let libraryItems = catalog.libraryItemsForLibrarySectionWithID(scripturesLibrarySection.id)
@@ -233,9 +233,9 @@ class CatalogTests: XCTestCase {
         XCTAssertEqual(libraryItem3, libraryItem)
     }
     
-    @available(*, deprecated=1.0.0)
+    @available(*, deprecated: 1.0.0)
     func testDeprecatedLibraryItems() {
-        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .Scriptures }!
+        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .scriptures }!
         let scripturesLibrarySection = catalog.librarySectionsForLibraryCollectionWithID(scripturesLibraryCollection.id).first!
         
         let libraryItems = catalog.libraryItemsForLibrarySectionWithID(scripturesLibrarySection.id)
@@ -259,16 +259,16 @@ class CatalogTests: XCTestCase {
     }
     
     func testLibraryNodes() {
-        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .Scriptures }!
+        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .scriptures }!
         let scripturesLibrarySection = catalog.librarySectionsForLibraryCollectionWithID(scripturesLibraryCollection.id).first!
         
         let libraryNodes = catalog.libraryNodesForLibrarySectionWithID(scripturesLibrarySection.id)
         XCTAssertGreaterThan(libraryNodes.count, 0)
     }
     
-    @available(*, deprecated=1.0.0)
+    @available(*, deprecated: 1.0.0)
     func testDeprecatedLibraryNodes() {
-        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .Scriptures }!
+        let scripturesLibraryCollection = catalog.libraryCollections().find { $0.type == .scriptures }!
         let scripturesLibrarySection = catalog.librarySectionsForLibraryCollectionWithID(scripturesLibraryCollection.id).first!
         
         let libraryNodes2 = catalog.libraryNodesForLibrarySectionWithExternalID(scripturesLibrarySection.externalID)
@@ -277,7 +277,7 @@ class CatalogTests: XCTestCase {
     
     func testStopwords() {
         let stopwords = catalog.stopwordsWithLanguageID(1)
-        XCTAssertTrue(Set(stopwords.map { $0.word }).isStrictSupersetOf(["and", "of", "the"]))
+        XCTAssertTrue(Set(stopwords.map { $0.word }).isStrictSuperset(of: ["and", "of", "the"]))
     }
     
 }
@@ -288,9 +288,9 @@ extension CatalogTests {
         super.setUp()
         
         do {
-            let tempDirectoryURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
-            try NSFileManager.defaultManager().createDirectoryAtURL(tempDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-            contentController = try ContentController(location: tempDirectoryURL, baseURL: NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!)
+            let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
+            try FileManager.default.createDirectory(at: tempDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+            contentController = try ContentController(location: tempDirectoryURL, baseURL: URL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!)
         } catch {
             NSLog("Failed to create content controller: %@", "\(error)")
         }
@@ -298,7 +298,7 @@ extension CatalogTests {
     
     override class func tearDown() {
         do {
-            try NSFileManager.defaultManager().removeItemAtURL(contentController.location)
+            try FileManager.default.removeItem(at: contentController.location)
         } catch {}
         
         super.tearDown()
@@ -310,23 +310,23 @@ extension CatalogTests {
         self.catalog = loadCatalog()
     }
     
-    private func loadCatalog() -> Catalog? {
+    fileprivate func loadCatalog() -> Catalog? {
         var catalog = CatalogTests.contentController.catalog
         if catalog == nil {
-            let semaphore = dispatch_semaphore_create(0)
+            let semaphore = DispatchSemaphore(value: 0)
             CatalogTests.contentController.updateCatalog(progress: { _ in }, completion: { result in
                 switch result {
-                case let .Success(newCatalog):
+                case let .success(newCatalog):
                     catalog = newCatalog
-                case let .PartialSuccess(newCatalog, _):
+                case let .partialSuccess(newCatalog, _):
                     catalog = newCatalog
-                case let .Error(errors):
+                case let .error(errors):
                     NSLog("Failed with errors %@", "\(errors)")
                 }
                 
-                dispatch_semaphore_signal(semaphore)
+                semaphore.signal()
             })
-            if dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, Int64(30 * NSEC_PER_SEC))) != 0 {
+            if semaphore.wait(timeout: DispatchTime.now() + Double(Int64(30 * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) == .timedOut {
                 NSLog("Timed out updating catalog")
             }
         }

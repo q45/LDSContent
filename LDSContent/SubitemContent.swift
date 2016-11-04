@@ -26,7 +26,7 @@ public struct SubitemContent: Equatable {
     
     public let id: Int64
     public let subitemID: Int64
-    public let contentHTML: NSData
+    public let contentHTML: Data
     
 }
 

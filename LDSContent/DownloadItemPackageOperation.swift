@@ -21,19 +21,19 @@
 //
 
 import Foundation
-import Operations
+import ProcedureKit
 
-class DownloadItemPackageOperation: Operation {
+class DownloadItemPackageOperation: Procedure {
     let session: Session
-    let tempDirectoryURL: NSURL
-    let baseURL: NSURL
+    let tempDirectoryURL: URL
+    let baseURL: URL
     let externalID: String
     let version: Int
-    let progress: (amount: Float) -> Void
+    let progress: (_ amount: Float) -> Void
     
-    init(session: Session, baseURL: NSURL, externalID: String, version: Int, progress: (amount: Float) -> Void, completion: (DownloadItemPackageResult) -> Void) {
+    init(session: Session, baseURL: URL, externalID: String, version: Int, progress: @escaping (_ amount: Float) -> Void, completion: @escaping (DownloadItemPackageResult) -> Void) {
         self.session = session
-        self.tempDirectoryURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
+        self.tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
         self.baseURL = baseURL
         self.externalID = externalID
         self.version = version
@@ -41,15 +41,15 @@ class DownloadItemPackageOperation: Operation {
         
         super.init()
         
-        addObserver(BlockObserver(didFinish: { operation, errors in
+        add(observer: BlockObserver(didFinish: { operation, errors in
             if errors.isEmpty {
-                completion(.Success(location: self.tempDirectoryURL))
+                completion(.success(location: self.tempDirectoryURL))
             } else {
-                completion(.Error(errors: errors))
+                completion(.error(errors: errors))
             }
             
             do {
-                try NSFileManager.defaultManager().removeItemAtURL(self.tempDirectoryURL)
+                try FileManager.default.removeItem(at: self.tempDirectoryURL)
             } catch {}
         }))
     }
@@ -57,40 +57,40 @@ class DownloadItemPackageOperation: Operation {
     override func execute() {
         downloadItemPackage(baseURL: baseURL, externalID: externalID, version: version, progress: progress) { result in
             switch result {
-            case let .Success(location):
+            case let .success(location):
                 do {
                     try ItemExtractor.extractItemPackage(location: location, destination: self.tempDirectoryURL)
                     self.finish()
                 } catch {
-                    self.finish(error)
+                    self.finish(withError: error)
                 }
-            case let .Error(error):
-                self.finish(error)
+            case let .error(error):
+                self.finish(withError: error)
             }
         }
     }
     
     enum DownloadResult {
-        case Success(location: NSURL)
-        case Error(error: NSError)
+        case success(location: URL)
+        case error(error: Error)
     }
     
-    func downloadItemPackage(baseURL baseURL: NSURL, externalID: String, version: Int, progress: (amount: Float) -> Void, completion: (DownloadResult) -> Void) {
-        let compressedItemPackageURL = baseURL.URLByAppendingPathComponent("v3/item-packages/\(externalID)/\(version).zip")
-        let request = NSMutableURLRequest(URL: compressedItemPackageURL)
-        let task = session.urlSession.downloadTaskWithRequest(request)
+    func downloadItemPackage(baseURL: URL, externalID: String, version: Int, progress: @escaping (_ amount: Float) -> Void, completion: @escaping (DownloadResult) -> Void) {
+        let compressedItemPackageURL = baseURL.appendingPathComponent("v3/item-packages/\(externalID)/\(version).zip")
+        let request = URLRequest(url: compressedItemPackageURL)
+        let task = session.urlSession.downloadTask(with: request)
         session.registerCallbacks(progress: progress, completion: { result in
             self.session.deregisterCallbacksForTaskIdentifier(task.taskIdentifier)
-            self.session.networkActivityObservers.notify(.Stop)
+            self.session.networkActivityObservers.notify(.stop)
             
             switch result {
-            case let .Error(error: error):
-                completion(.Error(error: error))
-            case let .Success(location: location):
-                completion(.Success(location: location))
+            case let .error(error: error):
+                completion(.error(error: error))
+            case let .success(location: location):
+                completion(.success(location: location))
             }
         }, forTaskIdentifier: task.taskIdentifier)
-        session.networkActivityObservers.notify(.Start)
+        session.networkActivityObservers.notify(.start)
         task.resume()
     }
     

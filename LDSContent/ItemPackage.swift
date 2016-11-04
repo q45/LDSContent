@@ -28,11 +28,11 @@ import FTS3HTMLTokenizer
 public class ItemPackage {
     
     let db: Connection
-    public let url: NSURL
+    public let url: URL
     
-    public init(url: NSURL, readonly: Bool = true) throws {
+    public init(url: URL, readonly: Bool = true) throws {
         do {
-            db = try Connection(url.URLByAppendingPathComponent("package.sqlite").path ?? "", readonly: readonly)
+            db = try Connection(url.appendingPathComponent("package.sqlite").path, readonly: readonly)
             db.busyTimeout = 5
             self.url = url
         } catch {
@@ -48,16 +48,16 @@ public class ItemPackage {
             try db.execute("PRAGMA foreign_keys = OFF")
         }
         
-        registerTokenizer(db.handle, UnsafeMutablePointer<Int8>(("HTMLTokenizer" as NSString).UTF8String))
+        registerTokenizer(db.handle, UnsafeMutablePointer<Int8>(mutating: ("HTMLTokenizer" as NSString).utf8String))
     }
     
-    public func inTransaction(closure: () throws -> Void) throws {
-        let inTransactionKey = "txn:\(unsafeAddressOf(self))"
-        if NSThread.currentThread().threadDictionary[inTransactionKey] != nil {
+    public func inTransaction(_ closure: @escaping () throws -> Void) throws {
+        let inTransactionKey = "txn:\(Unmanaged.passUnretained(self).toOpaque())"
+        if Thread.current.threadDictionary[inTransactionKey] != nil {
             try closure()
         } else {
-            NSThread.currentThread().threadDictionary[inTransactionKey] = true
-            defer { NSThread.currentThread().threadDictionary.removeObjectForKey(inTransactionKey) }
+            Thread.current.threadDictionary[inTransactionKey] = true
+            defer { Thread.current.threadDictionary.removeObject(forKey: inTransactionKey) }
             try db.transaction {
                 try closure()
             }
@@ -90,17 +90,17 @@ public class ItemPackage {
     
     public func itemHeadHTML() -> String {
         do {
-            return try NSFileManager.defaultManager().contentsOfDirectoryAtURL(url, includingPropertiesForKeys: nil, options: .SkipsPackageDescendants).flatMap { fileURL -> String? in
-                guard fileURL.pathExtension == "css", let filePath = fileURL.path else { return nil }
-                return "<link rel=\"stylesheet\" href=\"\(filePath)\"/>"
-            }.joinWithSeparator("\n")
+            return try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: .skipsPackageDescendants).flatMap { fileURL -> String? in
+                guard fileURL.pathExtension == "css" else { return nil }
+                return "<link rel=\"stylesheet\" href=\"\(fileURL.path)\"/>"
+            }.joined(separator: "\n")
         } catch {
             return ""
         }
     }
     
-    public func scriptureGotoURL() -> NSURL {
-        return url.URLByAppendingPathComponent("scriptureGoto.plist")
+    public func scriptureGotoURL() -> URL {
+        return url.appendingPathComponent("scriptureGoto.plist")
     }
     
 }
@@ -116,16 +116,22 @@ extension ItemPackage {
         
     }
     
-    func intForMetadataKey(key: String) -> Int64? {
-        return db.pluck(MetadataTable.table.filter(MetadataTable.key == key).select(MetadataTable.stringValue)).flatMap { row in
-            let string = row[MetadataTable.stringValue]
-            return Int64(string)
+    func intForMetadataKey(_ key: String) -> Int64? {
+        do {
+            return try db.pluck(MetadataTable.table.filter(MetadataTable.key == key).select(MetadataTable.stringValue)).flatMap { row in
+                let string = row[MetadataTable.stringValue]
+                return Int64(string)
+            }
+        } catch {
+            return nil
         }
     }
     
-    func stringForMetadataKey(key: String) -> String? {
-        return db.pluck(MetadataTable.table.filter(MetadataTable.key == key).select(MetadataTable.stringValue)).map { row in
-            return row[MetadataTable.stringValue]
+    func stringForMetadataKey(_ key: String) -> String? {
+        do {
+            return try db.pluck(MetadataTable.table.filter(MetadataTable.key == key).select(MetadataTable.stringValue)).map { return $0[MetadataTable.stringValue] }
+        } catch {
+            return nil
         }
     }
     
@@ -138,16 +144,20 @@ extension ItemPackage {
         static let table = View("subitem_content")
         static let id = Expression<Int64>("_id")
         static let subitemID = Expression<Int64>("subitem_id")
-        static let contentHTML = Expression<NSData>("content_html")
+        static let contentHTML = Expression<Data>("content_html")
         
-        static func fromRow(row: Row) -> SubitemContent {
+        static func fromRow(_ row: Row) -> SubitemContent {
             return SubitemContent(id: row[id], subitemID: row[subitemID], contentHTML: row[contentHTML])
         }
         
     }
     
-    public func subitemContentWithSubitemID(subitemID: Int64) -> SubitemContent? {
-        return db.pluck(SubitemContentView.table.filter(SubitemContentView.subitemID == subitemID)).map { SubitemContentView.fromRow($0) }
+    public func subitemContentWithSubitemID(_ subitemID: Int64) -> SubitemContent? {
+        do {
+            return try db.pluck(SubitemContentView.table.filter(SubitemContentView.subitemID == subitemID)).map { SubitemContentView.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
 }
@@ -159,34 +169,34 @@ extension ItemPackage {
         static let table = VirtualTable("subitem_content_fts")
         static let id = Expression<Int64>("_id")
         static let subitemID = Expression<Int64>("subitem_id")
-        static let contentHTML = Expression<NSData>("content_html")
+        static let contentHTML = Expression<Data>("content_html")
         
-        static func fromRow(row: [Binding?], iso639_3Code: String, keywordSearch: Bool) -> SearchResult {
+        static func fromRow(_ row: [Binding?], iso639_3Code: String, keywordSearch: Bool) -> SearchResult {
             return SearchResult(subitemID: Int64(row[2] as! Int64), uri: row[4] as! String, title: row[3] as! String, matchRanges: matchRangesFromOffsets(row[0] as! String, keywordSearch: keywordSearch), iso639_3Code: iso639_3Code, snippet: row[1] as! String)
         }
         
-        static func matchRangesFromOffsets(offsets: String, keywordSearch: Bool) -> [NSRange] {
+        static func matchRangesFromOffsets(_ offsets: String, keywordSearch: Bool) -> [NSRange] {
             var matchRanges = [NSRange]()
             
-            let scanner = NSScanner(string: offsets)
-            while !scanner.atEnd {
+            let scanner = Scanner(string: offsets)
+            while !scanner.isAtEnd {
                 var columnNumber = 0
-                if !scanner.scanInteger(&columnNumber) {
+                if !scanner.scanInt(&columnNumber) {
                     return []
                 }
                 
                 var termNumber = 0
-                if !scanner.scanInteger(&termNumber) {
+                if !scanner.scanInt(&termNumber) {
                     return []
                 }
                 
                 var byteOffset = 0
-                if !scanner.scanInteger(&byteOffset) {
+                if !scanner.scanInt(&byteOffset) {
                     return []
                 }
                 
                 var byteSize = 0
-                if !scanner.scanInteger(&byteSize) {
+                if !scanner.scanInt(&byteSize) {
                     return []
                 }
                 
@@ -205,9 +215,9 @@ extension ItemPackage {
         
     }
 
-    public func searchResultsForString(searchString: String, subitemID: Int64? = nil) -> [SearchResult] {
+    public func searchResultsForString(_ searchString: String, subitemID: Int64? = nil) -> [SearchResult] {
         let iso639_3Code = self.iso639_3Code!
-        let keywordSearch = (searchString.rangeOfString("^\\\".*\\\"$", options: .RegularExpressionSearch) == nil)
+        let keywordSearch = (searchString.range(of: "^\\\".*\\\"$", options: .regularExpression) == nil)
         
         do {
             var subStatement = ""
@@ -240,17 +250,21 @@ extension ItemPackage {
         static let indentLevel = Expression<Int>("indent_level")
         static let title = Expression<String?>("title")
         
-        static func fromRow(row: Row) -> NavSection {
+        static func fromRow(_ row: Row) -> NavSection {
             return NavSection(id: row[id], navCollectionID: row[navCollectionID], position: row[position], indentLevel: row[indentLevel], title: row[title])
         }
         
     }
     
-    public func navSectionWithID(id: Int64) -> NavSection? {
-        return db.pluck(NavSectionTable.table.filter(NavSectionTable.id == id)).map { NavSectionTable.fromRow($0) }
+    public func navSectionWithID(_ id: Int64) -> NavSection? {
+        do {
+            return try db.pluck(NavSectionTable.table.filter(NavSectionTable.id == id)).map { NavSectionTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
-    public func navSectionsForNavCollectionWithID(navCollectionID: Int64) -> [NavSection] {
+    public func navSectionsForNavCollectionWithID(_ navCollectionID: Int64) -> [NavSection] {
         do {
             return try db.prepare(NavSectionTable.table.filter(NavSectionTable.navCollectionID == navCollectionID).order(NavSectionTable.position)).map { NavSectionTable.fromRow($0) }
         } catch {
@@ -258,8 +272,12 @@ extension ItemPackage {
         }
     }
     
-    public func numberOfNavSectionsForNavCollectionWithID(navCollectionID: Int64) -> Int {
-        return db.scalar(NavSectionTable.table.filter(NavSectionTable.navCollectionID == navCollectionID).order(NavSectionTable.position).count)
+    public func numberOfNavSectionsForNavCollectionWithID(_ navCollectionID: Int64) -> Int {
+        do {
+            return try db.scalar(NavSectionTable.table.filter(NavSectionTable.navCollectionID == navCollectionID).order(NavSectionTable.position).count)
+        } catch {
+            return 0
+        }
     }
     
 }
@@ -279,17 +297,21 @@ extension ItemPackage {
         static let uri = Expression<String>("uri")
         static let subitemID = Expression<Int64>("subitem_id")
         
-        static func fromRow(row: Row) -> NavItem {
+        static func fromRow(_ row: Row) -> NavItem {
             return NavItem(id: row[id], navSectionID: row[navSectionID], position: row[position], imageRenditions: row[imageRenditions].flatMap { $0.toImageRenditions() }, titleHTML: row[titleHTML], subtitle: row[subtitle], preview: row[preview], uri: row[uri], subitemID: row[subitemID])
         }
         
     }
     
-    public func navItemWithURI(uri: String) -> NavItem? {
-        return db.pluck(NavItemTable.table.filter(NavItemTable.uri == uri)).map { NavItemTable.fromRow($0) }
+    public func navItemWithURI(_ uri: String) -> NavItem? {
+        do {
+            return try db.pluck(NavItemTable.table.filter(NavItemTable.uri == uri)).map { NavItemTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
-    public func navItemsForNavSectionWithID(navSectionID: Int64) -> [NavItem] {
+    public func navItemsForNavSectionWithID(_ navSectionID: Int64) -> [NavItem] {
         do {
             return try db.prepare(NavItemTable.table.filter(NavItemTable.navSectionID == navSectionID).order(NavItemTable.position)).map { NavItemTable.fromRow($0) }
         } catch {
@@ -301,11 +323,11 @@ extension ItemPackage {
 
 extension ItemPackage {
     
-    public func navNodesForNavSectionWithID(navSectionID: Int64) -> [NavNode] {
+    public func navNodesForNavSectionWithID(_ navSectionID: Int64) -> [NavNode] {
         var navNodes = [NavNode]()
         navNodes += navCollectionsForNavSectionWithID(navSectionID).map { $0 as NavNode }
         navNodes += navItemsForNavSectionWithID(navSectionID).map { $0 as NavNode }
-        return navNodes.sort { $0.position < $1.position }
+        return navNodes.sorted { $0.position < $1.position }
     }
     
 }
@@ -319,12 +341,12 @@ extension ItemPackage {
         static let familyName = Expression<String>("family_name")
         static let imageRenditions = Expression<String?>("image_renditions")
         
-        static func fromRow(row: Row) -> Author {
+        static func fromRow(_ row: Row) -> Author {
             return Author(id: row[id], givenName: row[givenName], familyName: row[familyName], imageRenditions: row[imageRenditions].flatMap { $0.toImageRenditions() })
         }
     }
     
-    public func authorsOfSubitemWithID(subitemID: Int64) -> [Author] {
+    public func authorsOfSubitemWithID(_ subitemID: Int64) -> [Author] {
         do {
             return try db.prepare(AuthorTable.table.select(AuthorTable.table[*]).join(SubitemAuthorTable.table, on: AuthorTable.table[AuthorTable.id] == SubitemAuthorTable.authorID).filter(SubitemAuthorTable.subitemID == subitemID).order(AuthorTable.familyName).order(AuthorTable.familyName, AuthorTable.givenName)).map { AuthorTable.fromRow($0) }
         } catch {
@@ -332,8 +354,12 @@ extension ItemPackage {
         }
     }
     
-    public func authorWithGivenName(givenName: String, familyName: String) -> Author? {
-        return db.pluck(AuthorTable.table.filter(AuthorTable.givenName == givenName && AuthorTable.familyName == familyName)).map { AuthorTable.fromRow($0) }
+    public func authorWithGivenName(_ givenName: String, familyName: String) -> Author? {
+        do {
+            return try db.pluck(AuthorTable.table.filter(AuthorTable.givenName == givenName && AuthorTable.familyName == familyName)).map { AuthorTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
 }
@@ -346,13 +372,17 @@ extension ItemPackage {
         static let name = Expression<String>("name")
         static let position = Expression<Int>("position")
         
-        static func fromRow(row: Row) -> Role {
+        static func fromRow(_ row: Row) -> Role {
             return Role(id: row[id], name: row[name], position: row[position])
         }
     }
     
-    public func roleWithName(name: String) -> Role? {
-        return db.pluck(RoleTable.table.filter(RoleTable.name == name)).map { RoleTable.fromRow($0) }
+    public func roleWithName(_ name: String) -> Role? {
+        do {
+            return try db.pluck(RoleTable.table.filter(RoleTable.name == name)).map { RoleTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
 }
@@ -366,7 +396,7 @@ extension ItemPackage {
         static let roleID = Expression<Int64>("role_id")
         static let position = Expression<Int>("position")
         
-        static func fromRow(row: Row) -> AuthorRole {
+        static func fromRow(_ row: Row) -> AuthorRole {
             return AuthorRole(id: row[id], authorID: row[authorID], roleID: row[roleID], position: row[position])
         }
     }
@@ -391,13 +421,17 @@ extension ItemPackage {
         static let id = Expression<Int64>("_id")
         static let name = Expression<String>("name")
         
-        static func fromRow(row: Row) -> Topic {
+        static func fromRow(_ row: Row) -> Topic {
             return Topic(id: row[id], name: row[name])
         }
     }
     
-    public func topicWithName(name: String) -> Topic? {
-        return db.pluck(TopicTable.table.filter(TopicTable.name == name)).map { TopicTable.fromRow($0) }
+    public func topicWithName(_ name: String) -> Topic? {
+        do {
+            return try db.pluck(TopicTable.table.filter(TopicTable.name == name)).map { TopicTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
 }

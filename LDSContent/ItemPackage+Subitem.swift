@@ -38,26 +38,42 @@ public extension ItemPackage {
         static let webURL = Expression<String>("web_url")
         static let contentType = Expression<ContentType>("content_type")
         
-        static func fromRow(row: Row) -> Subitem {
-            return Subitem(id: row[id], uri: row[uri], docID: row[docID], docVersion: row[docVersion], position: row[position], titleHTML: row[titleHTML], title: row[title], webURL: NSURL(string: row[webURL]), contentType: row.get(contentType))
+        static func fromRow(_ row: Row) -> Subitem {
+            return Subitem(id: row[id], uri: row[uri], docID: row[docID], docVersion: row[docVersion], position: row[position], titleHTML: row[titleHTML], title: row[title], webURL: URL(string: row[webURL]), contentType: row.get(contentType))
         }
         
     }
     
-    public func subitemWithURI(uri: String) -> Subitem? {
-        return db.pluck(SubitemTable.table.filter(SubitemTable.uri == uri)).map { SubitemTable.fromRow($0) }
+    public func subitemWithURI(_ uri: String) -> Subitem? {
+        do {
+            return try db.pluck(SubitemTable.table.filter(SubitemTable.uri == uri)).map { SubitemTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
-    public func subitemWithDocID(docID: String) -> Subitem? {
-        return db.pluck(SubitemTable.table.filter(SubitemTable.docID == docID)).map { SubitemTable.fromRow($0) }
+    public func subitemWithDocID(_ docID: String) -> Subitem? {
+        do {
+            return try db.pluck(SubitemTable.table.filter(SubitemTable.docID == docID)).map { SubitemTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
-    public func subitemWithID(id: Int64) -> Subitem? {
-        return db.pluck(SubitemTable.table.filter(SubitemTable.id == id)).map { SubitemTable.fromRow($0) }
+    public func subitemWithID(_ id: Int64) -> Subitem? {
+        do {
+            return try db.pluck(SubitemTable.table.filter(SubitemTable.id == id)).map { SubitemTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
-    public func subitemAtPosition(position: Int) -> Subitem? {
-        return db.pluck(SubitemTable.table.filter(SubitemTable.position == position)).map { SubitemTable.fromRow($0) }
+    public func subitemAtPosition(_ position: Int) -> Subitem? {
+        do {
+            return try db.pluck(SubitemTable.table.filter(SubitemTable.position == position)).map { SubitemTable.fromRow($0) }
+        } catch {
+            return nil
+        }
     }
     
     public func subitems() -> [Subitem] {
@@ -68,11 +84,15 @@ public extension ItemPackage {
         }
     }
     
-    public func subitemExistsWithURI(subitemURI: String) -> Bool {
-        return db.scalar(SubitemTable.table.filter(SubitemTable.uri == subitemURI).count) > 0
+    public func subitemExistsWithURI(_ subitemURI: String) -> Bool {
+        do {
+            return try db.scalar(SubitemTable.table.filter(SubitemTable.uri == subitemURI).count) > 0
+        } catch {
+            return false
+        }
     }
     
-    public func subitemsWithURIs(uris: [String]) -> [Subitem] {
+    public func subitemsWithURIs(_ uris: [String]) -> [Subitem] {
         do {
             return try db.prepare(SubitemTable.table.filter(uris.contains(SubitemTable.uri)).order(SubitemTable.position)).map { SubitemTable.fromRow($0) }
         } catch {
@@ -80,39 +100,63 @@ public extension ItemPackage {
         }
     }
     
-    public func firstSubitemURIPrefixedByURI(uri: String) -> String? {
-        return db.pluck(SubitemTable.table.select(SubitemTable.uri).filter(SubitemTable.uri.like("\(uri.escaped())%", escape: "!")).order(SubitemTable.position)).map { $0[SubitemTable.uri] }
+    public func firstSubitemURIPrefixedByURI(_ uri: String) -> String? {
+        do {
+            return try db.pluck(SubitemTable.table.select(SubitemTable.uri).filter(SubitemTable.uri.like("\(uri.escaped())%", escape: "!")).order(SubitemTable.position)).map { $0[SubitemTable.uri] }
+        } catch {
+            return nil
+        }
     }
     
-    public func subitemsWithAuthor(author: Author) -> [Subitem] {
+    public func subitemsWithAuthor(_ author: Author) -> [Subitem] {
         do {
             return try db.prepare(SubitemTable.table.filter(SubitemTable.id == SubitemAuthorTable.subitemID && SubitemAuthorTable.authorID == author.id).order(SubitemTable.position)).map { SubitemTable.fromRow($0) }
         } catch {
             return []
         }
     }
-
+    
     public func numberOfSubitems() -> Int {
-        return db.scalar(SubitemTable.table.count)
+        do {
+            return try db.scalar(SubitemTable.table.count)
+        } catch {
+            return 0
+        }
     }
     
-    public func subitemIDOfSubitemWithURI(subitemURI: String) -> Int64? {
-        return db.pluck(SubitemTable.table.select(SubitemTable.id).filter(SubitemTable.uri == subitemURI)).map { $0[SubitemTable.id] }
+    public func subitemIDOfSubitemWithURI(_ subitemURI: String) -> Int64? {
+        do {
+            return try db.pluck(SubitemTable.table.select(SubitemTable.id).filter(SubitemTable.uri == subitemURI)).map { $0[SubitemTable.id] }
+        } catch {
+            return nil
+        }
     }
     
-    public func docIDOfSubitemWithURI(subitemURI: String) -> String? {
-        return db.pluck(SubitemTable.table.select(SubitemTable.docID).filter(SubitemTable.uri == subitemURI)).map { $0[SubitemTable.docID] }
+    public func docIDOfSubitemWithURI(_ subitemURI: String) -> String? {
+        do {
+            return try db.pluck(SubitemTable.table.select(SubitemTable.docID).filter(SubitemTable.uri == subitemURI)).map { $0[SubitemTable.docID] }
+        } catch {
+            return nil
+        }
     }
     
-    public func docVersionOfSubitemWithURI(subitemURI: String) -> Int? {
-        return db.pluck(SubitemTable.table.select(SubitemTable.docVersion).filter(SubitemTable.uri == subitemURI)).map { $0[SubitemTable.docVersion] }
+    public func docVersionOfSubitemWithURI(_ subitemURI: String) -> Int? {
+        do {
+            return try db.pluck(SubitemTable.table.select(SubitemTable.docVersion).filter(SubitemTable.uri == subitemURI)).map { $0[SubitemTable.docVersion] }
+        } catch {
+            return nil
+        }
     }
     
-    public func URIOfSubitemWithID(subitemID: Int64) -> String? {
-        return db.pluck(SubitemTable.table.select(SubitemTable.uri).filter(SubitemTable.id == subitemID)).map { $0[SubitemTable.uri] }
+    public func URIOfSubitemWithID(_ subitemID: Int64) -> String? {
+        do {
+            return try db.pluck(SubitemTable.table.select(SubitemTable.uri).filter(SubitemTable.id == subitemID)).map { $0[SubitemTable.uri] }
+        } catch {
+            return nil
+        }
     }
     
-    public func URIsOfSubitemsWithIDs(ids: [Int64]) -> [String] {
+    public func URIsOfSubitemsWithIDs(_ ids: [Int64]) -> [String] {
         do {
             return try db.prepare(SubitemTable.table.select(SubitemTable.uri).filter(ids.contains(SubitemTable.id)).order(SubitemTable.position)).map { $0[SubitemTable.uri] }
         } catch {
@@ -120,7 +164,7 @@ public extension ItemPackage {
         }
     }
     
-    public func orderedSubitemURIsWithURIs(uris: [String]) -> [String] {
+    public func orderedSubitemURIsWithURIs(_ uris: [String]) -> [String] {
         do {
             return try db.prepare(SubitemTable.table.select(SubitemTable.uri).filter(uris.contains(SubitemTable.uri)).order(SubitemTable.position)).map { $0[SubitemTable.uri] }
         } catch {
@@ -128,24 +172,24 @@ public extension ItemPackage {
         }
     }
     
-    public func citationForSubitemWithDocID(docID: String, paragraphAIDs: [String]?) -> String? {
+    public func citationForSubitemWithDocID(_ docID: String, paragraphAIDs: [String]?) -> String? {
         guard let subitem = subitemWithDocID(docID) else { return nil }
         guard let verse = verseNumberTitleForSubitemWithDocID(docID, paragraphAIDs: paragraphAIDs) else { return subitem.title }
         
         var title = subitem.title
-        if title.rangeOfString("[0-9]$", options: .RegularExpressionSearch) == nil {
+        if title.range(of: "[0-9]$", options: .regularExpression) == nil {
             // If not, add 1. This is a one chapter book.
             title += " 1"
         }
         return String(format: NSLocalizedString("%1$@:%2$@", comment: "Formatter string for creating short titles with a verse ({chapter title}:{verse number}, e.g. 1 Nephi 10:7)"), title, verse)
     }
     
-    public func verseNumberTitleForSubitemWithDocID(docID: String, paragraphAIDs: [String]?) -> String? {
+    public func verseNumberTitleForSubitemWithDocID(_ docID: String, paragraphAIDs: [String]?) -> String? {
         var verse: String?
         
-        if let paragraphAIDs = paragraphAIDs where !paragraphAIDs.isEmpty {
+        if let paragraphAIDs = paragraphAIDs, !paragraphAIDs.isEmpty {
             let verseNumbers = verseNumbersForSubitemWithDocID(docID, paragraphAIDs: paragraphAIDs)
-            if verseNumbers.count > 1, let firstVerse = verseNumbers.first, lastVerse = verseNumbers.last {
+            if verseNumbers.count > 1, let firstVerse = verseNumbers.first, let lastVerse = verseNumbers.last {
                 verse = String(format: "%@-%@", firstVerse, lastVerse)
             } else if verseNumbers.count == 1 {
                 verse = verseNumbers.first
@@ -155,26 +199,26 @@ public extension ItemPackage {
         return verse
     }
     
-    func firstSubitemURIThatContainsURI(uri: String) -> String? {
+    func firstSubitemURIThatContainsURI(_ uri: String) -> String? {
         if subitemExistsWithURI(uri) {
             return uri
         }
-
+        
         // Iteratively look for the last subitem whose URI is a prefix of this URI
-        var subitemURI = uri.componentsSeparatedByString("?").first ?? ""
+        var subitemURI = uri.components(separatedBy: "?").first ?? ""
         while subitemURI.characters.count > 0 && subitemURI != "/" {
             guard !subitemExistsWithURI(subitemURI) else {
                 // Found a valid SubitemURI
                 return subitemURI
             }
             
-            if let range = subitemURI.rangeOfString("/", options: .BackwardsSearch) {
-                subitemURI = subitemURI.substringToIndex(range.startIndex)
+            if let range = subitemURI.range(of: "/", options: .backwards) {
+                subitemURI = subitemURI.substring(to: range.lowerBound)
             } else {
                 subitemURI = ""
             }
         }
-
+        
         return firstSubitemURIPrefixedByURI(uri)
     }
     

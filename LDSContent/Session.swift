@@ -21,7 +21,7 @@
 //
 
 import Foundation
-import Operations
+import ProcedureKit
 import Swiftification
 
 class Session: NSObject {
@@ -29,110 +29,110 @@ class Session: NSObject {
     let networkActivityObservers = ObserverSet<ContentController.NetworkActivity>()
     
     enum DownloadResult {
-        case Success(location: NSURL)
-        case Error(error: NSError)
+        case success(location: URL)
+        case error(error: Error)
     }
     
-    lazy var urlSession: NSURLSession = {
-        return NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration(), delegate: self, delegateQueue: nil)
+    lazy var urlSession: Foundation.URLSession = {
+        return Foundation.URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
     }()
     
-    let operationQueue: OperationQueue = {
-        let queue = OperationQueue()
+    let procedureQueue: ProcedureQueue = {
+        let queue = ProcedureQueue()
         queue.maxConcurrentOperationCount = 5
         return queue
     }()
     
-    let baseURL: NSURL
+    let baseURL: URL
     
-    private var progressByTaskIdentifier: [Int: (amount: Float) -> Void] = [:]
-    private var completionByTaskIdentifier: [Int: (result: DownloadResult) -> Void] = [:]
+    fileprivate var progressByTaskIdentifier: [Int: (_ amount: Float) -> Void] = [:]
+    fileprivate var completionByTaskIdentifier: [Int: (_ result: DownloadResult) -> Void] = [:]
     
-    init(baseURL: NSURL) {
+    init(baseURL: URL) {
         self.baseURL = baseURL
         super.init()
     }
     
-    private func catalogOperationsForCatalogs(catalogs: [(name: String, baseURL: NSURL, destination: (version: Int) -> NSURL)], progress: (amount: Float) -> Void = { _ in }, completion: (DownloadCatalogResult) -> Void) -> [Operation] {
+    fileprivate func catalogOperationsForCatalogs(_ catalogs: [(name: String, baseURL: URL, destination: (_ version: Int) -> URL)], progress: @escaping (_ amount: Float) -> Void = { _ in }, completion: @escaping (DownloadCatalogResult) -> Void) -> [Operation] {
         return catalogs.flatMap { (name, baseURL, destination) -> [Operation] in
             let versionOperation = FetchCatalogVersionOperation(session: self, baseURL: baseURL)
             let downloadOperation = DownloadCatalogOperation(session: self, catalogName: name, baseURL: baseURL, destination: destination, progress: progress, completion: completion)
-            downloadOperation.injectResultFromDependency(versionOperation)
+            downloadOperation.injectResult(from: versionOperation)
             return [versionOperation, downloadOperation]
         }
     }
     
-    func updateDefaultCatalog(destination destination: (version: Int) -> NSURL, progress: (amount: Float) -> Void = { _ in }, completion: (DownloadCatalogResult) -> Void) {
+    func updateDefaultCatalog(destination: @escaping (_ version: Int) -> URL, progress: @escaping (_ amount: Float) -> Void = { _ in }, completion: @escaping (DownloadCatalogResult) -> Void) {
         let operations = catalogOperationsForCatalogs([(ContentController.defaultCatalogName, baseURL, destination)], progress: progress, completion: completion)
-        operationQueue.addOperations(operations)
+        procedureQueue.add(operations: operations)
     }
     
-    func updateSecureCatalogs(secureCatalogs: [(name: String, baseURL: NSURL, destination: (version: Int) -> NSURL)], progress: (amount: Float) -> Void = { _ in }, completion: ([(name: String, baseURL: NSURL, result: DownloadCatalogResult)]) -> Void) {
+    func updateSecureCatalogs(_ secureCatalogs: [(name: String, baseURL: URL, destination: (_ version: Int) -> URL)], progress: @escaping (_ amount: Float) -> Void = { _ in }, completion: @escaping ([(name: String, baseURL: URL, result: DownloadCatalogResult)]) -> Void) {
         let operations = catalogOperationsForCatalogs(secureCatalogs, progress: progress, completion: { _ in })
-        let group = GroupOperation(operations: operations)
-        group.addObserver(DidFinishObserver { operation, errors in
-            let results: [(name: String, baseURL: NSURL, result: DownloadCatalogResult)] = operations.flatMap {
-                guard let downloadOperation = $0 as? DownloadCatalogOperation, result = downloadOperation.result else { return nil }
+        let group = GroupProcedure(operations: operations)
+        group.add(observer: DidFinishObserver { operation, errors in
+            let results: [(name: String, baseURL: URL, result: DownloadCatalogResult)] = operations.flatMap {
+                guard let downloadOperation = $0 as? DownloadCatalogOperation, let result = downloadOperation.result.value else { return nil }
                 
                 return (downloadOperation.catalogName, downloadOperation.baseURL, result)
             }
             
             completion(results)
         })
-        operationQueue.addOperation(group)
+        procedureQueue.addOperation(group)
     }
     
-    func downloadItemPackage(baseURL baseURL: NSURL, externalID: String, version: Int, priority: InstallPriority = .Default, progress: (amount: Float) -> Void, completion: (DownloadItemPackageResult) -> Void) {
+    func downloadItemPackage(baseURL: URL, externalID: String, version: Int, priority: InstallPriority = .normal, progress: @escaping (_ amount: Float) -> Void, completion: @escaping (DownloadItemPackageResult) -> Void) {
         let operation = DownloadItemPackageOperation(session: self, baseURL: baseURL, externalID: externalID, version: version, progress: progress, completion: completion)
-        if case priority = InstallPriority.High {
-            operation.queuePriority = .VeryHigh
+        if case priority = InstallPriority.high {
+            operation.queuePriority = .veryHigh
         }
-        operationQueue.addOperation(operation)
+        procedureQueue.addOperation(operation)
     }
     
-    func registerCallbacks(progress progress: (amount: Float) -> Void, completion: (result: DownloadResult) -> Void, forTaskIdentifier taskIdentifier: Int) {
+    func registerCallbacks(progress: @escaping (_ amount: Float) -> Void, completion: @escaping (_ result: DownloadResult) -> Void, forTaskIdentifier taskIdentifier: Int) {
         progressByTaskIdentifier[taskIdentifier] = progress
         completionByTaskIdentifier[taskIdentifier] = completion
     }
     
-    func deregisterCallbacksForTaskIdentifier(taskIdentifier: Int) {
+    func deregisterCallbacksForTaskIdentifier(_ taskIdentifier: Int) {
         progressByTaskIdentifier[taskIdentifier] = nil
         completionByTaskIdentifier[taskIdentifier] = nil
     }
 
-    func waitWithCompletion(completion: () -> Void) {
-        let operation = Operation()
-        operation.addObserver(BlockObserver(didFinish: { _, _ in completion() }))
-        operationQueue.addOperation(operation)
+    func waitWithCompletion(_ completion: @escaping () -> Void) {
+        let operation = Procedure()
+        operation.add(observer: BlockObserver(didFinish: { _, _ in completion() }))
+        procedureQueue.addOperation(operation)
     }
 }
 
-extension Session: NSURLSessionDelegate {
-    func URLSession(session: NSURLSession, didReceiveChallenge challenge: NSURLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) {
-        completionHandler(.UseCredential, challenge.protectionSpace.serverTrust.flatMap { NSURLCredential(forTrust: $0) })
+extension Session: URLSessionDelegate {
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        completionHandler(.useCredential, challenge.protectionSpace.serverTrust.flatMap { URLCredential(trust: $0) })
     }
     
-    func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let completion = completionByTaskIdentifier[task.taskIdentifier] {
-            completion(result: .Error(error: error ?? Error.errorWithCode(.Unknown, failureReason: "Failed to download")))
+            completion(.error(error: error ?? ContentError.errorWithCode(.unknown, failureReason: "Failed to download")))
         }
     }
 }
 
-extension Session: NSURLSessionDownloadDelegate {
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+extension Session: URLSessionDownloadDelegate {
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         if let progress = progressByTaskIdentifier[downloadTask.taskIdentifier] {
-            progress(amount: Float(totalBytesWritten) / Float(totalBytesExpectedToWrite))
+            progress(Float(totalBytesWritten) / Float(totalBytesExpectedToWrite))
         }
     }
     
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL) {
-        guard let completion = completionByTaskIdentifier[downloadTask.taskIdentifier], response = downloadTask.response as? NSHTTPURLResponse else { return }
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        guard let completion = completionByTaskIdentifier[downloadTask.taskIdentifier], let response = downloadTask.response as? HTTPURLResponse else { return }
         
         if response.statusCode == 200 {
-            completion(result: .Success(location: location))
+            completion(.success(location: location))
         } else {
-            completion(result: .Error(error: Error.errorWithCode(.Unknown, failureReason: "Failed to download, response status code: \(response.statusCode)")))
+            completion(.error(error: ContentError.errorWithCode(.unknown, failureReason: "Failed to download, response status code: \(response.statusCode)")))
         }
     }
 }

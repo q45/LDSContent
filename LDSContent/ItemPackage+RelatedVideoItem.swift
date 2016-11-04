@@ -34,12 +34,12 @@ public extension ItemPackage {
         static let videoID = Expression<String>("video_id")
         static let title = Expression<String>("title")
         
-        static func fromRow(row: Row) -> RelatedVideoItem {
-            return RelatedVideoItem(id: row[id], subitemID: row[subitemID], posterURL: row[posterURL].flatMap { NSURL(string: $0) }, videoID: row[videoID], title: row[title])
+        static func fromRow(_ row: Row) -> RelatedVideoItem {
+            return RelatedVideoItem(id: row[id], subitemID: row[subitemID], posterURL: row[posterURL].flatMap { URL(string: $0) }, videoID: row[videoID], title: row[title])
         }
         
-        static func fromNamespacedRow(row: Row) -> RelatedVideoItem {
-            return RelatedVideoItem(id: row[RelatedAudioItemTable.table[id]], subitemID: row[RelatedAudioItemTable.table[subitemID]], posterURL: row[RelatedAudioItemTable.table[posterURL]].flatMap { NSURL(string: $0) }, videoID: row[RelatedAudioItemTable.table[videoID]], title: row[RelatedAudioItemTable.table[title]])
+        static func fromNamespacedRow(_ row: Row) -> RelatedVideoItem {
+            return RelatedVideoItem(id: row[RelatedAudioItemTable.table[id]], subitemID: row[RelatedAudioItemTable.table[subitemID]], posterURL: row[RelatedAudioItemTable.table[posterURL]].flatMap { URL(string: $0) }, videoID: row[RelatedAudioItemTable.table[videoID]], title: row[RelatedAudioItemTable.table[title]])
         }
         
     }
@@ -55,21 +55,21 @@ public extension ItemPackage {
         static let fileSize = Expression<Int64?>("file_size")
         static let relatedVideoItemID = Expression<Int64>("related_video_item_id")
         
-        static func fromRow(row: Row) -> RelatedVideoItemSource? {
-            guard let mediaURL = NSURL(string: row[mediaURL]) else { return nil }
+        static func fromRow(_ row: Row) -> RelatedVideoItemSource? {
+            guard let mediaURL = URL(string: row[mediaURL]) else { return nil }
             
             var size: CGSize?
-            if let width = row[width], height = row[height] {
+            if let width = row[width], let height = row[height] {
                 size = CGSize(width: width, height: height)
             }
             return RelatedVideoItemSource(id: row[id], mediaURL: mediaURL, type: row[type], size: size, fileSize: row[fileSize], relatedVideoItemID: row[relatedVideoItemID])
         }
         
-        static func fromNamespacedRow(row: Row) -> RelatedVideoItemSource? {
-            guard let mediaURL = NSURL(string: row[RelatedAudioItemTable.table[mediaURL]]) else { return nil }
+        static func fromNamespacedRow(_ row: Row) -> RelatedVideoItemSource? {
+            guard let mediaURL = URL(string: row[RelatedAudioItemTable.table[mediaURL]]) else { return nil }
             
             var size: CGSize?
-            if let width = row[RelatedAudioItemTable.table[width]], height = row[RelatedAudioItemTable.table[height]] {
+            if let width = row[RelatedAudioItemTable.table[width]], let height = row[RelatedAudioItemTable.table[height]] {
                 size = CGSize(width: width, height: height)
             }
             return RelatedVideoItemSource(id: row[RelatedAudioItemTable.table[id]], mediaURL: mediaURL, type: row[RelatedAudioItemTable.table[type]], size: size, fileSize: row[RelatedAudioItemTable.table[fileSize]], relatedVideoItemID: row[RelatedAudioItemTable.table[relatedVideoItemID]])
@@ -77,7 +77,7 @@ public extension ItemPackage {
         
     }
     
-    public func relatedVideoItemsForSubitemWithID(subitemID: Int64) -> [RelatedVideoItem] {
+    public func relatedVideoItemsForSubitemWithID(_ subitemID: Int64) -> [RelatedVideoItem] {
         do {
             return try db.prepare(RelatedVideoItemTable.table.filter(RelatedVideoItemTable.subitemID == subitemID)).map { RelatedVideoItemTable.fromRow($0) }
         } catch {
@@ -85,7 +85,7 @@ public extension ItemPackage {
         }
     }
     
-    public func relatedVideoItemSourcesForRelatedVideoItemWithID(relatedVideoItemID: Int64) -> [RelatedVideoItemSource] {
+    public func relatedVideoItemSourcesForRelatedVideoItemWithID(_ relatedVideoItemID: Int64) -> [RelatedVideoItemSource] {
         do {
             return try db.prepare(RelatedVideoItemSourceTable.table.filter(RelatedVideoItemSourceTable.relatedVideoItemID == relatedVideoItemID)).flatMap { RelatedVideoItemSourceTable.fromRow($0) }
         } catch {

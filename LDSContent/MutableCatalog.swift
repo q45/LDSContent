@@ -31,14 +31,14 @@ public class MutableCatalog: Catalog {
         try createDatabaseTables()
     }
     
-    private func createDatabaseTables() throws {
+    fileprivate func createDatabaseTables() throws {
         try db.transaction {
             if !self.db.tableExists("metadata") {
-                if let sqlPath = NSBundle(forClass: self.dynamicType).pathForResource("Catalog", ofType: "sql") {
-                    let sql = try String(contentsOfFile: sqlPath, encoding: NSUTF8StringEncoding)
+                if let sqlPath = Bundle(for: type(of: self)).path(forResource: "Catalog", ofType: "sql") {
+                    let sql = try String(contentsOfFile: sqlPath, encoding: String.Encoding.utf8)
                     try self.db.execute(sql)
                 } else {
-                    throw Error.errorWithCode(.Unknown, failureReason: "Unable to locate SQL for catalog.")
+                    throw ContentError.errorWithCode(.unknown, failureReason: "Unable to locate SQL for catalog.")
                 }
             }
         }
@@ -70,20 +70,20 @@ public class MutableCatalog: Catalog {
 
 extension MutableCatalog {
     
-    func setInt(integerValue: Int?, forMetadataKey key: String) {
+    func setInt(_ integerValue: Int?, forMetadataKey key: String) {
         do {
             if let integerValue = integerValue {
-                try db.run(MetadataTable.table.insert(or: .Replace, MetadataTable.key <- key, MetadataTable.integerValue <- integerValue))
+                try db.run(MetadataTable.table.insert(or: .replace, MetadataTable.key <- key, MetadataTable.integerValue <- integerValue))
             } else {
                 try db.run(MetadataTable.table.filter(MetadataTable.key == key).delete())
             }
         } catch {}
     }
     
-    func setString(stringValue: String?, forMetadataKey key: String) {
+    func setString(_ stringValue: String?, forMetadataKey key: String) {
         do {
             if let stringValue = stringValue {
-                try db.run(MetadataTable.table.insert(or: .Replace, MetadataTable.key <- key, MetadataTable.stringValue <- stringValue))
+                try db.run(MetadataTable.table.insert(or: .replace, MetadataTable.key <- key, MetadataTable.stringValue <- stringValue))
             } else {
                 try db.run(MetadataTable.table.filter(MetadataTable.key == key).delete())
             }
@@ -94,23 +94,23 @@ extension MutableCatalog {
 
 extension MutableCatalog {
 
-    public func addOrUpdateSource(source: Source) throws {
-        try db.run(SourceTable.table.insert(or: .Replace,
+    public func addOrUpdateSource(_ source: Source) throws {
+        try db.run(SourceTable.table.insert(or: .replace,
             SourceTable.id <- source.id,
             SourceTable.name <- source.name,
             SourceTable.typeID <- source.type.rawValue
         ))
     }
     
-    public func addOrUpdateItemCategory(itemCategory: ItemCategory) throws {
-        try db.run(ItemCategoryTable.table.insert(or: .Replace,
+    public func addOrUpdateItemCategory(_ itemCategory: ItemCategory) throws {
+        try db.run(ItemCategoryTable.table.insert(or: .replace,
             ItemCategoryTable.id <- itemCategory.id,
             ItemCategoryTable.name <- itemCategory.name
         ))
     }
     
-    public func addOrUpdateItem(item: Item) throws {
-        try db.run(ItemTable.table.insert(or: .Replace,
+    public func addOrUpdateItem(_ item: Item) throws {
+        try db.run(ItemTable.table.insert(or: .replace,
             ItemTable.id <- item.id,
             ItemTable.externalID <- item.externalID,
             ItemTable.languageID <- item.languageID,
@@ -125,8 +125,8 @@ extension MutableCatalog {
         ))
     }
     
-    public func addOrUpdateLanguage(language: Language) throws {
-        try db.run(LanguageTable.table.insert(or: .Replace,
+    public func addOrUpdateLanguage(_ language: Language) throws {
+        try db.run(LanguageTable.table.insert(or: .replace,
             LanguageTable.id <- language.id,
             LanguageTable.ldsLanguageCode <- language.ldsLanguageCode,
             LanguageTable.iso639_3Code <- language.iso639_3Code,
@@ -136,7 +136,7 @@ extension MutableCatalog {
         ))
     }
     
-    public func setName(name: String, forLanguageWithID languageID: Int64, inLanguageWithID localizationLanguageID: Int64) throws {
+    public func setName(_ name: String, forLanguageWithID languageID: Int64, inLanguageWithID localizationLanguageID: Int64) throws {
         try db.run(LanguageNameTable.table.insert(
             LanguageNameTable.languageID <- languageID,
             LanguageNameTable.localizationLanguageID <- localizationLanguageID,
@@ -144,8 +144,8 @@ extension MutableCatalog {
         ))
     }
     
-    public func addOrUpdateLibraryCollection(libraryCollection: LibraryCollection) throws {
-        try db.run(LibraryCollectionTable.table.insert(or: .Replace,
+    public func addOrUpdateLibraryCollection(_ libraryCollection: LibraryCollection) throws {
+        try db.run(LibraryCollectionTable.table.insert(or: .replace,
             LibraryCollectionTable.id <- libraryCollection.id,
             LibraryCollectionTable.externalID <- libraryCollection.externalID,
             LibraryCollectionTable.librarySectionID <- libraryCollection.librarySectionID,
@@ -157,8 +157,8 @@ extension MutableCatalog {
         ))
     }
     
-    public func addOrUpdateLibrarySection(librarySection: LibrarySection) throws {
-        try db.run(LibrarySectionTable.table.insert(or: .Replace,
+    public func addOrUpdateLibrarySection(_ librarySection: LibrarySection) throws {
+        try db.run(LibrarySectionTable.table.insert(or: .replace,
             LibrarySectionTable.id <- librarySection.id,
             LibrarySectionTable.externalID <- librarySection.externalID,
             LibrarySectionTable.libraryCollectionID <- librarySection.libraryCollectionID,
@@ -169,8 +169,8 @@ extension MutableCatalog {
         ))
     }
     
-    public func addOrUpdateLibraryItem(libraryItem: LibraryItem) throws {
-        try db.run(LibraryItemTable.table.insert(or: .Replace,
+    public func addOrUpdateLibraryItem(_ libraryItem: LibraryItem) throws {
+        try db.run(LibraryItemTable.table.insert(or: .replace,
             LibraryItemTable.id <- libraryItem.id,
             LibraryItemTable.externalID <- libraryItem.externalID,
             LibraryItemTable.librarySectionID <- libraryItem.librarySectionID,
@@ -183,14 +183,14 @@ extension MutableCatalog {
         ))
     }
     
-    public func addStopword(stopword: Stopword) throws {
+    public func addStopword(_ stopword: Stopword) throws {
         try db.run(StopwordTable.table.insert(
             StopwordTable.languageID <- stopword.languageID,
             StopwordTable.word <- stopword.word
         ))
     }
     
-    public func addSubitemMetadata(id id: Int64, subitemID: Int64, itemID: Int64, docID: String, docVersion: Int) throws {
+    public func addSubitemMetadata(id: Int64, subitemID: Int64, itemID: Int64, docID: String, docVersion: Int) throws {
         try db.run(SubitemMetadataTable.table.insert(
             SubitemMetadataTable.id <- id,
             SubitemMetadataTable.subitemID <- subitemID,
@@ -204,8 +204,8 @@ extension MutableCatalog {
 
 extension MutableCatalog {
     
-    func insertDataFromCatalog(path: String, name: String) throws {
-        let attachName = name.stringByReplacingOccurrencesOfString("-", withString: "_")
+    func insertDataFromCatalog(_ path: String, name: String) throws {
+        let attachName = name.replacingOccurrences(of: "-", with: "_")
         try db.run("ATTACH DATABASE ? AS ?", path, attachName)
         
         // loop through all tables in the database and copy the data into the merged database

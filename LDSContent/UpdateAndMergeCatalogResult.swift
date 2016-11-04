@@ -23,7 +23,7 @@
 import Foundation
 
 public enum UpdateAndMergeCatalogResult {
-    case Success(catalog: Catalog)
-    case PartialSuccess(catalog: Catalog, secureCatalogFailures: [(name: String, errors: [ErrorType])])
-    case Error(errors: [ErrorType])
+    case success(catalog: Catalog)
+    case partialSuccess(catalog: Catalog, secureCatalogFailures: [(name: String, errors: [Error])])
+    case error(errors: [Error])
 }

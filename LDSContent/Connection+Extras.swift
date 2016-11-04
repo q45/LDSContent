@@ -25,8 +25,12 @@ import SQLite
 
 extension Connection {
     
-    func tableExists(tableName: String) -> Bool {
-        return scalar("SELECT name FROM sqlite_master WHERE type='table' AND name=?", tableName) as? String == tableName
+    func tableExists(_ tableName: String) -> Bool {
+        do {
+            return try scalar("SELECT name FROM sqlite_master WHERE type='table' AND name=?", tableName) as? String == tableName
+        } catch {
+            return false
+        }
     }
     
 }

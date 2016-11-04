@@ -27,10 +27,10 @@ import SQLite
 public enum RelatedAudioVoice: Int64 {
     
     /// Male audio voice
-    case Male = 1
+    case male = 1
     
     /// Female audio voice
-    case Female = 2
+    case female = 2
     
 }
 
@@ -40,8 +40,8 @@ extension RelatedAudioVoice: Value {
         return Int64.declaredDatatype
     }
     
-    public static func fromDatatypeValue(intValue: Int64) -> RelatedAudioVoice {
-        return RelatedAudioVoice(rawValue: intValue) ?? .Male
+    public static func fromDatatypeValue(_ intValue: Int64) -> RelatedAudioVoice {
+        return RelatedAudioVoice(rawValue: intValue) ?? .male
     }
     
     public var datatypeValue: Int64 {

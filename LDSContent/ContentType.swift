@@ -27,10 +27,10 @@ import SQLite
 public enum ContentType: Int64 {
     
     /// Default content type
-    case Default = 1
+    case standard = 1
     
     /// LDS Music content type
-    case Music = 2
+    case music = 2
     
 }
 
@@ -40,8 +40,8 @@ extension ContentType: Value {
         return Int64.declaredDatatype
     }
     
-    public static func fromDatatypeValue(intValue: Int64) -> ContentType {
-        return ContentType(rawValue: intValue) ?? .Default
+    public static func fromDatatypeValue(_ intValue: Int64) -> ContentType {
+        return ContentType(rawValue: intValue) ?? .standard
     }
     
     public var datatypeValue: Int64 {

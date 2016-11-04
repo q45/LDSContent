@@ -27,7 +27,7 @@ class ContentInventory {
     
     let db: Connection
     
-    private static let currentVersion = 1
+    fileprivate static let currentVersion = 1
     
     init(path: String? = nil) throws {
         do {
@@ -37,18 +37,18 @@ class ContentInventory {
             throw error
         }
         
-        if databaseVersion < self.dynamicType.currentVersion {
+        if databaseVersion < type(of: self).currentVersion {
             upgradeDatabaseFromVersion(databaseVersion)
         }
     }
     
-    func inTransaction(closure: () throws -> Void) throws {
-        let inTransactionKey = "txn:\(unsafeAddressOf(self))"
-        if NSThread.currentThread().threadDictionary[inTransactionKey] != nil {
+    func inTransaction(_ closure: @escaping () throws -> Void) throws {
+        let inTransactionKey = "txn:\(Unmanaged.passUnretained(self).toOpaque())"
+        if Thread.current.threadDictionary[inTransactionKey] != nil {
             try closure()
         } else {
-            NSThread.currentThread().threadDictionary[inTransactionKey] = true
-            defer { NSThread.currentThread().threadDictionary.removeObjectForKey(inTransactionKey) }
+            Thread.current.threadDictionary[inTransactionKey] = true
+            defer { Thread.current.threadDictionary.removeObject(forKey: inTransactionKey) }
             try db.transaction {
                 try closure()
             }
@@ -57,7 +57,11 @@ class ContentInventory {
     
     var databaseVersion: Int {
         get {
-            return Int(db.scalar("PRAGMA user_version") as? Int64 ?? 0)
+            do {
+                return try Int(db.scalar("PRAGMA user_version") as? Int64 ?? 0)
+            } catch {
+                return 0
+            }
         }
         set {
             do {
@@ -66,7 +70,7 @@ class ContentInventory {
         }
     }
     
-    private func upgradeDatabaseFromVersion(fromVersion: Int) {
+    fileprivate func upgradeDatabaseFromVersion(_ fromVersion: Int) {
         if fromVersion < 1 {
             do {
                 try inTransaction {
@@ -117,25 +121,33 @@ extension ContentInventory {
         }
     }
     
-    func installedVersionOfItemWithID(itemID: Int64) -> (schemaVersion: Int, itemPackageVersion: Int)? {
-        return db.pluck(InstalledItemTable.table.filter(InstalledItemTable.itemID == itemID)).map { row in
-            return (schemaVersion: row[InstalledItemTable.schemaVersion], itemPackageVersion: row[InstalledItemTable.itemPackageVersion])
+    func installedVersionOfItemWithID(_ itemID: Int64) -> (schemaVersion: Int, itemPackageVersion: Int)? {
+        do {
+            return try db.pluck(InstalledItemTable.table.filter(InstalledItemTable.itemID == itemID)).map { row in
+                return (schemaVersion: row[InstalledItemTable.schemaVersion], itemPackageVersion: row[InstalledItemTable.itemPackageVersion])
+            }
+        } catch {
+            return nil
         }
     }
     
-    func isItemWithIDInstalled(itemID itemID: Int64) -> Bool {
-        return db.scalar(InstalledItemTable.table.filter(InstalledItemTable.itemID == itemID).count) != 0
+    func isItemWithIDInstalled(itemID: Int64) -> Bool {
+        do {
+            return try db.scalar(InstalledItemTable.table.filter(InstalledItemTable.itemID == itemID).count) != 0
+        } catch {
+            return false
+        }
     }
     
-    func setSchemaVersion(schemaVersion: Int, itemPackageVersion: Int, forItemWithID itemID: Int64) throws {
-        try db.run(InstalledItemTable.table.insert(or: .Replace,
+    func setSchemaVersion(_ schemaVersion: Int, itemPackageVersion: Int, forItemWithID itemID: Int64) throws {
+        try db.run(InstalledItemTable.table.insert(or: .replace,
             InstalledItemTable.itemID <- itemID,
             InstalledItemTable.schemaVersion <- schemaVersion,
             InstalledItemTable.itemPackageVersion <- itemPackageVersion
         ))
     }
     
-    func removeVersionForItemWithID(itemID: Int64) throws {
+    func removeVersionForItemWithID(_ itemID: Int64) throws {
         try db.run(InstalledItemTable.table.filter(InstalledItemTable.itemID == itemID).delete())
     }
 
@@ -158,11 +170,11 @@ extension ContentInventory {
         }
     }
     
-    func addToInstallQueue(itemID itemID: Int64) throws {
-        try db.run(InstallQueueTable.table.insert(or: .Replace, InstallQueueTable.itemID <- itemID))
+    func addToInstallQueue(itemID: Int64) throws {
+        try db.run(InstallQueueTable.table.insert(or: .replace, InstallQueueTable.itemID <- itemID))
     }
     
-    func removeFromInstallQueue(itemID itemID: Int64) throws {
+    func removeFromInstallQueue(itemID: Int64) throws {
         try db.run(InstallQueueTable.table.filter(InstallQueueTable.itemID == itemID).delete())
     }
     
@@ -185,9 +197,9 @@ extension ContentInventory {
         }
     }
     
-    func setErrored(errored: Bool, itemID: Int64) throws {
+    func setErrored(_ errored: Bool, itemID: Int64) throws {
         if errored {
-            try db.run(ErroredInstallTable.table.insert(or: .Replace, ErroredInstallTable.itemID <- itemID))
+            try db.run(ErroredInstallTable.table.insert(or: .replace, ErroredInstallTable.itemID <- itemID))
         } else {
             try db.run(ErroredInstallTable.table.filter(ErroredInstallTable.itemID == itemID).delete())
         }
@@ -205,17 +217,17 @@ extension ContentInventory {
         static let url = Expression<String?>("url")
         static let version = Expression<Int>("version")
         
-        static func fromRow(row: Row) -> CatalogMetadata {
+        static func fromRow(_ row: Row) -> CatalogMetadata {
             return CatalogMetadata(name: row[name], url: row[url], version: row[version])
         }
         
     }
     
-    func addOrUpdateCatalog(name: String, url: String?, version: Int) throws {
-        try db.run(InstalledCatalogTable.table.insert(or: .Replace, InstalledCatalogTable.name <- name, InstalledCatalogTable.url <- url, InstalledCatalogTable.version <- version))
+    func addOrUpdateCatalog(_ name: String, url: String?, version: Int) throws {
+        try db.run(InstalledCatalogTable.table.insert(or: .replace, InstalledCatalogTable.name <- name, InstalledCatalogTable.url <- url, InstalledCatalogTable.version <- version))
     }
     
-    func deleteCatalogsNamed(names: [String]) throws {
+    func deleteCatalogsNamed(_ names: [String]) throws {
         try db.run(InstalledCatalogTable.table.filter(names.contains(InstalledCatalogTable.name)).delete())
     }
     
@@ -227,7 +239,7 @@ extension ContentInventory {
         }
     }
     
-    func catalogNamed(name: String) -> CatalogMetadata? {
+    func catalogNamed(_ name: String) -> CatalogMetadata? {
         // TODO: Switch back to use `db.pluck` when it doesn't crash
         do {
             return try db.prepare(InstalledCatalogTable.table.filter(InstalledCatalogTable.name == name).limit(1)).map { InstalledCatalogTable.fromRow($0) }.first

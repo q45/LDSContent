@@ -26,7 +26,7 @@ public struct RelatedAudioItem: Equatable {
     
     public let id: Int64
     public let subitemID: Int64
-    public let mediaURL: NSURL
+    public let mediaURL: URL
     public let fileSize: Int64
     public let duration: Int
     public let voice: RelatedAudioVoice?

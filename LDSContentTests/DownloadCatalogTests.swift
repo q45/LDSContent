@@ -26,45 +26,45 @@ import XCTest
 class DownloadCatalogTests: XCTestCase {
     
     func testDownloadLatestCatalog() {
-        let session = Session(baseURL: NSURL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!)
-        let catalogURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
-        let downloadExpectation = expectationWithDescription("Download latest catalog")
-        let alreadyCurrentExpectation = self.expectationWithDescription("Already downloaded catalog")
+        let session = Session(baseURL: URL(string: "https://edge.ldscdn.org/mobile/gospelstudy/beta/")!)
+        let catalogURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
+        let downloadExpectation = expectation(description: "Download latest catalog")
+        let alreadyCurrentExpectation = self.expectation(description: "Already downloaded catalog")
         session.updateDefaultCatalog(destination: { _ in catalogURL }) { result in
             switch result {
-            case .Success:
+            case .success:
                 do {
-                    let catalog = try Catalog(path: catalogURL.path!)
+                    let catalog = try Catalog(path: catalogURL.path)
                     XCTAssertGreaterThan(catalog.catalogVersion, 0)
                 } catch {
                     XCTFail("Failed to connect to catalog: \(error)")
                 }
-            case .AlreadyCurrent:
+            case .alreadyCurrent:
                 XCTFail("Shouldn't be already current.")
-            case let .Error(errors):
+            case let .error(errors):
                 XCTFail("Failed with errors \(errors)")
             }
             downloadExpectation.fulfill()
             
             session.updateDefaultCatalog(destination: { _ in catalogURL }) { result in
                 switch result {
-                case .Success:
+                case .success:
                     XCTFail("Should be already current.")
-                case .AlreadyCurrent:
+                case .alreadyCurrent:
                     do {
-                        let catalog = try Catalog(path: catalogURL.path!)
+                        let catalog = try Catalog(path: catalogURL.path)
                         XCTAssertGreaterThan(catalog.catalogVersion, 0)
                     } catch {
                         XCTFail("Failed to connect to catalog: \(error)")
                     }
-                case let .Error(errors):
+                case let .error(errors):
                     XCTFail("Failed with errors \(errors)")
                 }
                 alreadyCurrentExpectation.fulfill()
             }
         }
         
-        waitForExpectationsWithTimeout(30, handler: nil)
+        waitForExpectations(timeout: 30, handler: nil)
     }
     
 }
