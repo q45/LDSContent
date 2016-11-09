@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.resources    = "LDSContent/*.{sql,json}"
   s.requires_arc = true
   
-  s.dependency 'Operations'
+  s.dependency 'ProcedureKit', '4.0.0.beta.4'
   s.dependency 'SQLite.swift'
   s.dependency 'FTS3HTMLTokenizer', '~> 2.0'
   s.dependency 'Swiftification'
