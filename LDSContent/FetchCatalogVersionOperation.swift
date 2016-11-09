@@ -63,7 +63,7 @@ class FetchCatalogVersionOperation: Procedure, ResultInjection {
                 return
             }
             
-            guard let jsonDictionary = jsonObject as? [String: AnyObject], let catalogVersion = jsonDictionary["catalogVersion"] as? Int else {
+            guard let jsonDictionary = jsonObject as? [String: Any], let catalogVersion = jsonDictionary["catalogVersion"] as? Int else {
                 self.finish(withError: ContentError.errorWithCode(.unknown, failureReason: "Unexpected JSON response"))
                 return
             }
