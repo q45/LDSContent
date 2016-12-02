@@ -22,23 +22,11 @@
 
 import Foundation
 
-/// Returns the second attributed string appended to the first.
-public func + (lhs: NSAttributedString, rhs: NSAttributedString) -> NSAttributedString {
-    let result = NSMutableAttributedString(attributedString: lhs)
-    result.append(rhs)
-    return result
-}
-
-public extension Sequence where Iterator.Element == NSAttributedString {
-    /// Interpose the `separator` between elements of `self`, then concatenate the result.
-    func joined(separator: NSAttributedString) -> NSAttributedString {
-        let result = NSMutableAttributedString()
-        for (i, element) in self.enumerated() {
-            if i > 0 {
-                result.append(separator)
-            }
-            result.append(element)
-        }
-        return result
+public extension Double {
+    /// Random Double between min and max (inclusive).
+    static func random(min: Double = 0, max: Double = DBL_MAX) -> Double {
+        let diff = max - min
+        let rand = Double(arc4random() % (UInt32(RAND_MAX) + 1))
+        return ((rand / Double(RAND_MAX)) * diff) + min
     }
 }

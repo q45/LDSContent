@@ -57,7 +57,7 @@ public extension Catalog {
             let results = try db.prepare(SubitemMetadataTable.table.select(SubitemMetadataTable.docID, SubitemMetadataTable.docVersion).filter(docIDs.contains(SubitemMetadataTable.docID))).map { row in
                 return (row[SubitemMetadataTable.docID], row[SubitemMetadataTable.docVersion])
             }
-            return Dictionary(elements: results)
+            return Dictionary(results)
         } catch {
             return [:]
         }

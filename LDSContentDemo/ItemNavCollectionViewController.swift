@@ -91,12 +91,8 @@ class ItemNavCollectionViewController: UIViewController {
             return (itemNavSection: itemNavSection, itemNavNodes: itemPackage.navNodesForNavSectionWithID(itemNavSection.id))
         }
         
-        var previousIndexPath: IndexPath?
         sectionIndexes = itemPackage.navCollectionIndexEntriesForNavCollectionWithID(itemNavCollection.id).flatMap { indexEntry in
-            guard let indexPath = indexEntry.indexPath ?? previousIndexPath else { return nil }
-            
-            previousIndexPath = indexPath
-            return (title: indexEntry.title, indexPath: indexPath)
+            return (title: indexEntry.title, indexPath: indexEntry.indexPath)
         }
     }
     
