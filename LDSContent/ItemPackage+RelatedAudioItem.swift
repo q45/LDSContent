@@ -51,7 +51,7 @@ public extension ItemPackage {
     
     public func relatedAudioItemForSubitemWithURI(_ subitemURI: String, relatedAudioVoice: RelatedAudioVoice? = nil) -> RelatedAudioItem? {
         do {
-            let relatedAudioItems = try db.prepare(RelatedAudioItemTable.table.join(SubitemTable.table, on: SubitemTable.table[SubitemTable.id] == RelatedAudioItemTable.table[RelatedAudioItemTable.subitemID]).filter(SubitemTable.uri == subitemURI).order(RelatedAudioItemTable.voice)).flatMap { RelatedAudioItemTable.fromNamespacedRow($0) }
+            let relatedAudioItems = try db?.prepare(RelatedAudioItemTable.table.join(SubitemTable.table, on: SubitemTable.table[SubitemTable.id] == RelatedAudioItemTable.table[RelatedAudioItemTable.subitemID]).filter(SubitemTable.uri == subitemURI).order(RelatedAudioItemTable.voice)).flatMap { RelatedAudioItemTable.fromNamespacedRow($0) } ?? []
             return relatedAudioItems.find { $0.voice == relatedAudioVoice } ?? relatedAudioItems.first
         } catch {
             return nil
@@ -60,7 +60,7 @@ public extension ItemPackage {
     
     public func relatedAudioItemsForSubitemWithID(_ subitemID: Int64) -> [RelatedAudioItem] {
         do {
-            return try db.prepare(RelatedAudioItemTable.table.filter(RelatedAudioItemTable.subitemID == subitemID)).flatMap { RelatedAudioItemTable.fromRow($0) }
+            return try db?.prepare(RelatedAudioItemTable.table.filter(RelatedAudioItemTable.subitemID == subitemID)).flatMap { RelatedAudioItemTable.fromRow($0) } ?? []
         } catch {
             return []
         }
@@ -68,7 +68,7 @@ public extension ItemPackage {
     
     public func relatedAudioItemsForSubitemsWithIDs(_ subitemIDs: [Int64]) -> [RelatedAudioItem] {
         do {
-            return try db.prepare(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID))).flatMap { RelatedAudioItemTable.fromRow($0) }
+            return try db?.prepare(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID))).flatMap { RelatedAudioItemTable.fromRow($0) } ?? []
         } catch {
             return []
         }
@@ -76,7 +76,7 @@ public extension ItemPackage {
     
     public func hasRelatedAudioItemsForSubitemsWithIDs(_ subitemIDs: [Int64]) -> Bool {
         do {
-            return try db.scalar(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID)).count) > 0
+            return try db?.scalar(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID)).count) ?? 0 > 0
         } catch {
             return false
         }

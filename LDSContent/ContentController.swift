@@ -43,6 +43,7 @@ public class ContentController {
     public let itemPackageUninstallObservers = ObserverSet<Item>()
     public let itemPackageInstallProgressObservers = ObserverSet<(item: Item, progress: Float)>()
     public let networkActivityObservers = ObserverSet<NetworkActivity>()
+    public let itemPackageDirectoryDeletedObservers = ObserverSet<URL>()
     
     public enum NetworkActivity {
         case start
@@ -104,6 +105,7 @@ public class ContentController {
         guard let items = try? FileManager.default.contentsOfDirectory(at: parentDirectory, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) else { return }
         
         for siblingURL in items where siblingURL.lastPathComponent != url.lastPathComponent {
+            itemPackageDirectoryDeletedObservers.notify(siblingURL)
             do {
                 try FileManager.default.removeItem(at: siblingURL)
             } catch {}
@@ -246,10 +248,10 @@ extension ContentController {
 extension ContentController {
     /// The currently installed item package for the designated item.
     public func itemPackageForItemWithID(_ itemID: Int64) -> ItemPackage? {
-        if let installedVersion = contentInventory.installedVersionOfItemWithID(itemID) {
-            return try? ItemPackage(url: location.appendingPathComponent("Item/\(itemID)/\(installedVersion.schemaVersion).\(installedVersion.itemPackageVersion)"))
+        if let installedVersion = contentInventory.installedVersionOfItemWithID(itemID), let package = try? ItemPackage(url: location.appendingPathComponent("Item/\(itemID)/\(installedVersion.schemaVersion).\(installedVersion.itemPackageVersion)")) {
+            itemPackageDirectoryDeletedObservers.add(package, ItemPackage.itemPackageDirectoryDeleted)
+            return package
         }
-        
         return nil
     }
     
@@ -274,6 +276,7 @@ extension ContentController {
         } catch {}
         
         let itemPackage = try ItemPackage(url: versionDirectoryURL)
+        itemPackageDirectoryDeletedObservers.add(itemPackage, ItemPackage.itemPackageDirectoryDeleted)
         if itemPackage.schemaVersion == Catalog.SchemaVersion && itemPackage.itemPackageVersion == item.version {
             try self.contentInventory.setSchemaVersion(Catalog.SchemaVersion, itemPackageVersion: item.version, forItemWithID: item.id)
         } else {
@@ -352,6 +355,7 @@ extension ContentController {
                     
                     do {
                         let itemPackage = try ItemPackage(url: versionDirectoryURL)
+                        self.itemPackageDirectoryDeletedObservers.add(itemPackage, ItemPackage.itemPackageDirectoryDeleted)
                         
                         try self.contentInventory.setSchemaVersion(Catalog.SchemaVersion, itemPackageVersion: item.version, forItemWithID: item.id)
                         
@@ -386,6 +390,7 @@ extension ContentController {
         let versionDirectoryURL = itemDirectoryURL.appendingPathComponent("\(Catalog.SchemaVersion).\(item.version)")
         
         if let installedVersion = contentInventory.installedVersionOfItemWithID(item.id), installedVersion.schemaVersion == Catalog.SchemaVersion && installedVersion.itemPackageVersion == item.version {
+            itemPackageDirectoryDeletedObservers.notify(versionDirectoryURL)
             try FileManager.default.removeItem(at: versionDirectoryURL)
 
             try self.contentInventory.removeVersionForItemWithID(item.id)

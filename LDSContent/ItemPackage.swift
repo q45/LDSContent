@@ -27,28 +27,34 @@ import FTS3HTMLTokenizer
 
 public class ItemPackage {
     
-    let db: Connection
+    var db: Connection?
     public let url: URL
     
     public init(url: URL, readonly: Bool = true) throws {
         do {
             db = try Connection(url.appendingPathComponent("package.sqlite").path, readonly: readonly)
-            db.busyTimeout = 5
+            db?.busyTimeout = 5
             self.url = url
         } catch {
             throw error
         }
         
-        try db.execute("PRAGMA synchronous = OFF")
-        try db.execute("PRAGMA journal_mode = OFF")
-        try db.execute("PRAGMA temp_store = MEMORY")
+        try db?.execute("PRAGMA synchronous = OFF")
+        try db?.execute("PRAGMA journal_mode = OFF")
+        try db?.execute("PRAGMA temp_store = MEMORY")
         
         if readonly {
             // Only disable foreign keys when using as a readonly database for better performance
-            try db.execute("PRAGMA foreign_keys = OFF")
+            try db?.execute("PRAGMA foreign_keys = OFF")
         }
         
-        registerTokenizer(db.handle, UnsafeMutablePointer<Int8>(mutating: ("HTMLTokenizer" as NSString).utf8String))
+        registerTokenizer(db?.handle, UnsafeMutablePointer<Int8>(mutating: ("HTMLTokenizer" as NSString).utf8String))
+    }
+    
+    func itemPackageDirectoryDeleted(itemPackageURL: URL) {
+        if itemPackageURL == url {
+            db = nil
+        }
     }
     
     public func inTransaction(_ closure: @escaping () throws -> Void) throws {
@@ -58,7 +64,7 @@ public class ItemPackage {
         } else {
             Thread.current.threadDictionary[inTransactionKey] = true
             defer { Thread.current.threadDictionary.removeObject(forKey: inTransactionKey) }
-            try db.transaction {
+            try db?.transaction {
                 try closure()
             }
         }
@@ -118,7 +124,7 @@ extension ItemPackage {
     
     func intForMetadataKey(_ key: String) -> Int64? {
         do {
-            return try db.pluck(MetadataTable.table.filter(MetadataTable.key == key).select(MetadataTable.stringValue)).flatMap { row in
+            return try db?.pluck(MetadataTable.table.filter(MetadataTable.key == key).select(MetadataTable.stringValue)).flatMap { row in
                 let string = row[MetadataTable.stringValue]
                 return Int64(string)
             }
@@ -129,7 +135,7 @@ extension ItemPackage {
     
     func stringForMetadataKey(_ key: String) -> String? {
         do {
-            return try db.pluck(MetadataTable.table.filter(MetadataTable.key == key).select(MetadataTable.stringValue)).map { return $0[MetadataTable.stringValue] }
+            return try (db?.pluck(MetadataTable.table.filter(MetadataTable.key == key).select(MetadataTable.stringValue)))?.map { return $0[MetadataTable.stringValue] }
         } catch {
             return nil
         }
@@ -154,7 +160,7 @@ extension ItemPackage {
     
     public func subitemContentWithSubitemID(_ subitemID: Int64) -> SubitemContent? {
         do {
-            return try db.pluck(SubitemContentView.table.filter(SubitemContentView.subitemID == subitemID)).map { SubitemContentView.fromRow($0) }
+            return try (db?.pluck(SubitemContentView.table.filter(SubitemContentView.subitemID == subitemID)))?.map { SubitemContentView.fromRow($0) }
         } catch {
             return nil
         }
@@ -229,9 +235,9 @@ extension ItemPackage {
             
             let statement = "SELECT offsets(subitem_content_fts) AS offsets, snippet(subitem_content_fts, '<em class=\"searchMatch\">', '</em>', '…', -1, 35) AS snippet, subitem_content_fts.subitem_id, subitem.title, subitem.uri FROM subitem_content_fts LEFT JOIN subitem ON subitem._id = subitem_content_fts.subitem_id WHERE subitem_content_fts.content_html MATCH @searchString \(subStatement) ORDER BY subitem_content_fts.subitem_id"
             
-            return try db.prepare(statement, bindings).map { row in
+            return try (db?.prepare(statement, bindings))?.map { row in
                 return SubitemContentVirtualTable.fromRow(row, iso639_3Code: iso639_3Code, keywordSearch: keywordSearch)
-            }
+            } ?? []
         } catch {
             return []
         }
@@ -258,7 +264,7 @@ extension ItemPackage {
     
     public func navSectionWithID(_ id: Int64) -> NavSection? {
         do {
-            return try db.pluck(NavSectionTable.table.filter(NavSectionTable.id == id)).map { NavSectionTable.fromRow($0) }
+            return try (db?.pluck(NavSectionTable.table.filter(NavSectionTable.id == id)))?.map { NavSectionTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -266,7 +272,7 @@ extension ItemPackage {
     
     public func navSectionsForNavCollectionWithID(_ navCollectionID: Int64) -> [NavSection] {
         do {
-            return try db.prepare(NavSectionTable.table.filter(NavSectionTable.navCollectionID == navCollectionID).order(NavSectionTable.position)).map { NavSectionTable.fromRow($0) }
+            return try (db?.prepare(NavSectionTable.table.filter(NavSectionTable.navCollectionID == navCollectionID).order(NavSectionTable.position)))?.map { NavSectionTable.fromRow($0) } ?? []
         } catch {
             return []
         }
@@ -274,7 +280,7 @@ extension ItemPackage {
     
     public func numberOfNavSectionsForNavCollectionWithID(_ navCollectionID: Int64) -> Int {
         do {
-            return try db.scalar(NavSectionTable.table.filter(NavSectionTable.navCollectionID == navCollectionID).order(NavSectionTable.position).count)
+            return try db?.scalar(NavSectionTable.table.filter(NavSectionTable.navCollectionID == navCollectionID).order(NavSectionTable.position).count) ?? 0
         } catch {
             return 0
         }
@@ -305,7 +311,7 @@ extension ItemPackage {
     
     public func navItemWithURI(_ uri: String) -> NavItem? {
         do {
-            return try db.pluck(NavItemTable.table.filter(NavItemTable.uri == uri)).map { NavItemTable.fromRow($0) }
+            return try (db?.pluck(NavItemTable.table.filter(NavItemTable.uri == uri)))?.map { NavItemTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -313,7 +319,7 @@ extension ItemPackage {
     
     public func navItemsForNavSectionWithID(_ navSectionID: Int64) -> [NavItem] {
         do {
-            return try db.prepare(NavItemTable.table.filter(NavItemTable.navSectionID == navSectionID).order(NavItemTable.position)).map { NavItemTable.fromRow($0) }
+            return try (db?.prepare(NavItemTable.table.filter(NavItemTable.navSectionID == navSectionID).order(NavItemTable.position)))?.map { NavItemTable.fromRow($0) } ?? []
         } catch {
             return []
         }
@@ -348,7 +354,7 @@ extension ItemPackage {
     
     public func authorsOfSubitemWithID(_ subitemID: Int64) -> [Author] {
         do {
-            return try db.prepare(AuthorTable.table.select(AuthorTable.table[*]).join(SubitemAuthorTable.table, on: AuthorTable.table[AuthorTable.id] == SubitemAuthorTable.authorID).filter(SubitemAuthorTable.subitemID == subitemID).order(AuthorTable.familyName).order(AuthorTable.familyName, AuthorTable.givenName)).map { AuthorTable.fromRow($0) }
+            return try (db?.prepare(AuthorTable.table.select(AuthorTable.table[*]).join(SubitemAuthorTable.table, on: AuthorTable.table[AuthorTable.id] == SubitemAuthorTable.authorID).filter(SubitemAuthorTable.subitemID == subitemID).order(AuthorTable.familyName).order(AuthorTable.familyName, AuthorTable.givenName)))?.map { AuthorTable.fromRow($0) } ?? []
         } catch {
             return []
         }
@@ -356,7 +362,7 @@ extension ItemPackage {
     
     public func authorWithGivenName(_ givenName: String, familyName: String) -> Author? {
         do {
-            return try db.pluck(AuthorTable.table.filter(AuthorTable.givenName == givenName && AuthorTable.familyName == familyName)).map { AuthorTable.fromRow($0) }
+            return try (db?.pluck(AuthorTable.table.filter(AuthorTable.givenName == givenName && AuthorTable.familyName == familyName)))?.map { AuthorTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -379,7 +385,7 @@ extension ItemPackage {
     
     public func roleWithName(_ name: String) -> Role? {
         do {
-            return try db.pluck(RoleTable.table.filter(RoleTable.name == name)).map { RoleTable.fromRow($0) }
+            return try (db?.pluck(RoleTable.table.filter(RoleTable.name == name)))?.map { RoleTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -428,7 +434,7 @@ extension ItemPackage {
     
     public func topicWithName(_ name: String) -> Topic? {
         do {
-            return try db.pluck(TopicTable.table.filter(TopicTable.name == name)).map { TopicTable.fromRow($0) }
+            return try (db?.pluck(TopicTable.table.filter(TopicTable.name == name)))?.map { TopicTable.fromRow($0) }
         } catch {
             return nil
         }

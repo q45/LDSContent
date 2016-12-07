@@ -44,7 +44,7 @@ extension ItemPackage {
     
     public func rootNavCollection() -> NavCollection? {
         do {
-            return try db.pluck(NavCollectionTable.table.filter(NavCollectionTable.navSectionID == nil)).map { NavCollectionTable.fromRow($0) }
+            return try (db?.pluck(NavCollectionTable.table.filter(NavCollectionTable.navSectionID == nil)))?.map { NavCollectionTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -52,7 +52,7 @@ extension ItemPackage {
     
     public func navCollectionWithID(_ id: Int64) -> NavCollection? {
         do {
-            return try db.pluck(NavCollectionTable.table.filter(NavCollectionTable.id == id)).map { NavCollectionTable.fromRow($0) }
+            return try (db?.pluck(NavCollectionTable.table.filter(NavCollectionTable.id == id)))?.map { NavCollectionTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -60,7 +60,7 @@ extension ItemPackage {
     
     public func navCollectionWithURI(_ uri: String) -> NavCollection? {
         do {
-            return try db.pluck(NavCollectionTable.table.filter(NavCollectionTable.uri == uri)).map { NavCollectionTable.fromRow($0) }
+            return try (db?.pluck(NavCollectionTable.table.filter(NavCollectionTable.uri == uri)))?.map { NavCollectionTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -68,7 +68,7 @@ extension ItemPackage {
     
     public func navCollectionExistsWithURI(_ uri: String) -> Bool {
         do {
-            return try db.scalar(NavCollectionTable.table.filter(NavCollectionTable.uri == uri).count) > 0
+            return try db?.scalar(NavCollectionTable.table.filter(NavCollectionTable.uri == uri).count) ?? 0 > 0
         } catch {
             return false
         }
@@ -76,7 +76,7 @@ extension ItemPackage {
     
     public func navCollectionsForNavSectionWithID(_ navSectionID: Int64) -> [NavCollection] {
         do {
-            return try db.prepare(NavCollectionTable.table.filter(NavCollectionTable.navSectionID == navSectionID).order(NavCollectionTable.position)).map { NavCollectionTable.fromRow($0) }
+            return try (db?.prepare(NavCollectionTable.table.filter(NavCollectionTable.navSectionID == navSectionID).order(NavCollectionTable.position)))?.map { NavCollectionTable.fromRow($0) } ?? []
         } catch {
             return []
         }

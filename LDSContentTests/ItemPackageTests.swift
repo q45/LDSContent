@@ -199,6 +199,12 @@ class ItemPackageTests: XCTestCase {
         XCTAssertTrue(orderedURIs == itemPackage.orderedSubitemURIsWithURIs(unorderedURIs))
     }
     
+    func testNoCrashOnUninstalledPackage() {
+        XCTAssertNotNil(itemPackage.subitemAtPosition(0))
+        try! ItemPackageTests.contentController.uninstallItemPackageForItem(ItemPackageTests.contentController.catalog!.itemWithID(itemPackage.itemID!)!)
+        XCTAssertNil(itemPackage.subitemAtPosition(0))
+    }
+    
 }
 
 extension ItemPackageTests {

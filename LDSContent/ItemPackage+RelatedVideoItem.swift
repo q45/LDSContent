@@ -79,7 +79,7 @@ public extension ItemPackage {
     
     public func relatedVideoItemsForSubitemWithID(_ subitemID: Int64) -> [RelatedVideoItem] {
         do {
-            return try db.prepare(RelatedVideoItemTable.table.filter(RelatedVideoItemTable.subitemID == subitemID)).map { RelatedVideoItemTable.fromRow($0) }
+            return try (db?.prepare(RelatedVideoItemTable.table.filter(RelatedVideoItemTable.subitemID == subitemID)))?.map { RelatedVideoItemTable.fromRow($0) } ?? []
         } catch {
             return []
         }
@@ -87,7 +87,7 @@ public extension ItemPackage {
     
     public func relatedVideoItemSourcesForRelatedVideoItemWithID(_ relatedVideoItemID: Int64) -> [RelatedVideoItemSource] {
         do {
-            return try db.prepare(RelatedVideoItemSourceTable.table.filter(RelatedVideoItemSourceTable.relatedVideoItemID == relatedVideoItemID)).flatMap { RelatedVideoItemSourceTable.fromRow($0) }
+            return try db?.prepare(RelatedVideoItemSourceTable.table.filter(RelatedVideoItemSourceTable.relatedVideoItemID == relatedVideoItemID)).flatMap { RelatedVideoItemSourceTable.fromRow($0) } ?? []
         } catch {
             return []
         }

@@ -44,7 +44,7 @@ extension ItemPackage {
     
     public func navCollectionIndexEntryWithID(_ id: Int64) -> NavCollectionIndexEntry? {
         do {
-            return try db.pluck(NavCollectionIndexEntryTable.table.filter(NavCollectionIndexEntryTable.id == id)).map { NavCollectionIndexEntryTable.fromRow($0) }
+            return try (db?.pluck(NavCollectionIndexEntryTable.table.filter(NavCollectionIndexEntryTable.id == id)))?.map { NavCollectionIndexEntryTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -52,7 +52,7 @@ extension ItemPackage {
     
     public func navCollectionIndexEntriesForNavCollectionWithID(_ navCollectionID: Int64) -> [NavCollectionIndexEntry] {
         do {
-            return try db.prepare(NavCollectionIndexEntryTable.table.filter(NavCollectionIndexEntryTable.navCollectionID == navCollectionID).order(NavCollectionIndexEntryTable.position)).map { NavCollectionIndexEntryTable.fromRow($0) }
+            return try (db?.prepare(NavCollectionIndexEntryTable.table.filter(NavCollectionIndexEntryTable.navCollectionID == navCollectionID).order(NavCollectionIndexEntryTable.position)))?.map { NavCollectionIndexEntryTable.fromRow($0) } ?? []
         } catch {
             return []
         }

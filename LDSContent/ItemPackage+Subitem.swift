@@ -46,7 +46,7 @@ public extension ItemPackage {
     
     public func subitemWithURI(_ uri: String) -> Subitem? {
         do {
-            return try db.pluck(SubitemTable.table.filter(SubitemTable.uri == uri)).map { SubitemTable.fromRow($0) }
+            return try (db?.pluck(SubitemTable.table.filter(SubitemTable.uri == uri)))?.map { SubitemTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -54,7 +54,7 @@ public extension ItemPackage {
     
     public func subitemWithDocID(_ docID: String) -> Subitem? {
         do {
-            return try db.pluck(SubitemTable.table.filter(SubitemTable.docID == docID)).map { SubitemTable.fromRow($0) }
+            return try (db?.pluck(SubitemTable.table.filter(SubitemTable.docID == docID)))?.map { SubitemTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -62,7 +62,7 @@ public extension ItemPackage {
     
     public func subitemWithID(_ id: Int64) -> Subitem? {
         do {
-            return try db.pluck(SubitemTable.table.filter(SubitemTable.id == id)).map { SubitemTable.fromRow($0) }
+            return try (db?.pluck(SubitemTable.table.filter(SubitemTable.id == id)))?.map { SubitemTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -70,7 +70,7 @@ public extension ItemPackage {
     
     public func subitemAtPosition(_ position: Int) -> Subitem? {
         do {
-            return try db.pluck(SubitemTable.table.filter(SubitemTable.position == position)).map { SubitemTable.fromRow($0) }
+            return try (db?.pluck(SubitemTable.table.filter(SubitemTable.position == position)))?.map { SubitemTable.fromRow($0) }
         } catch {
             return nil
         }
@@ -78,7 +78,7 @@ public extension ItemPackage {
     
     public func subitems() -> [Subitem] {
         do {
-            return try db.prepare(SubitemTable.table.order(SubitemTable.position)).map { SubitemTable.fromRow($0) }
+            return try (db?.prepare(SubitemTable.table.order(SubitemTable.position)))?.map { SubitemTable.fromRow($0) } ?? []
         } catch {
             return []
         }
@@ -86,7 +86,7 @@ public extension ItemPackage {
     
     public func subitemExistsWithURI(_ subitemURI: String) -> Bool {
         do {
-            return try db.scalar(SubitemTable.table.filter(SubitemTable.uri == subitemURI).count) > 0
+            return try db?.scalar(SubitemTable.table.filter(SubitemTable.uri == subitemURI).count) ?? 0 > 0
         } catch {
             return false
         }
@@ -94,7 +94,7 @@ public extension ItemPackage {
     
     public func subitemsWithURIs(_ uris: [String]) -> [Subitem] {
         do {
-            return try db.prepare(SubitemTable.table.filter(uris.contains(SubitemTable.uri)).order(SubitemTable.position)).map { SubitemTable.fromRow($0) }
+            return try (db?.prepare(SubitemTable.table.filter(uris.contains(SubitemTable.uri)).order(SubitemTable.position)))?.map { SubitemTable.fromRow($0) } ?? []
         } catch {
             return []
         }
@@ -102,7 +102,7 @@ public extension ItemPackage {
     
     public func firstSubitemURIPrefixedByURI(_ uri: String) -> String? {
         do {
-            return try db.pluck(SubitemTable.table.select(SubitemTable.uri).filter(SubitemTable.uri.like("\(uri.escaped())%", escape: "!")).order(SubitemTable.position)).map { $0[SubitemTable.uri] }
+            return try (db?.pluck(SubitemTable.table.select(SubitemTable.uri).filter(SubitemTable.uri.like("\(uri.escaped())%", escape: "!")).order(SubitemTable.position)))?.map { $0[SubitemTable.uri] }
         } catch {
             return nil
         }
@@ -110,7 +110,7 @@ public extension ItemPackage {
     
     public func subitemsWithAuthor(_ author: Author) -> [Subitem] {
         do {
-            return try db.prepare(SubitemTable.table.filter(SubitemTable.id == SubitemAuthorTable.subitemID && SubitemAuthorTable.authorID == author.id).order(SubitemTable.position)).map { SubitemTable.fromRow($0) }
+            return try (db?.prepare(SubitemTable.table.filter(SubitemTable.id == SubitemAuthorTable.subitemID && SubitemAuthorTable.authorID == author.id).order(SubitemTable.position)))?.map { SubitemTable.fromRow($0) } ?? []
         } catch {
             return []
         }
@@ -118,7 +118,7 @@ public extension ItemPackage {
     
     public func numberOfSubitems() -> Int {
         do {
-            return try db.scalar(SubitemTable.table.count)
+            return try db?.scalar(SubitemTable.table.count) ?? 0
         } catch {
             return 0
         }
@@ -126,7 +126,7 @@ public extension ItemPackage {
     
     public func subitemIDOfSubitemWithURI(_ subitemURI: String) -> Int64? {
         do {
-            return try db.pluck(SubitemTable.table.select(SubitemTable.id).filter(SubitemTable.uri == subitemURI)).map { $0[SubitemTable.id] }
+            return try (db?.pluck(SubitemTable.table.select(SubitemTable.id).filter(SubitemTable.uri == subitemURI)))?.map { $0[SubitemTable.id] }
         } catch {
             return nil
         }
@@ -134,7 +134,7 @@ public extension ItemPackage {
     
     public func docIDOfSubitemWithURI(_ subitemURI: String) -> String? {
         do {
-            return try db.pluck(SubitemTable.table.select(SubitemTable.docID).filter(SubitemTable.uri == subitemURI)).map { $0[SubitemTable.docID] }
+            return try (db?.pluck(SubitemTable.table.select(SubitemTable.docID).filter(SubitemTable.uri == subitemURI)))?.map { $0[SubitemTable.docID] }
         } catch {
             return nil
         }
@@ -142,7 +142,7 @@ public extension ItemPackage {
     
     public func docVersionOfSubitemWithURI(_ subitemURI: String) -> Int? {
         do {
-            return try db.pluck(SubitemTable.table.select(SubitemTable.docVersion).filter(SubitemTable.uri == subitemURI)).map { $0[SubitemTable.docVersion] }
+            return try (db?.pluck(SubitemTable.table.select(SubitemTable.docVersion).filter(SubitemTable.uri == subitemURI)))?.map { $0[SubitemTable.docVersion] }
         } catch {
             return nil
         }
@@ -150,7 +150,7 @@ public extension ItemPackage {
     
     public func URIOfSubitemWithID(_ subitemID: Int64) -> String? {
         do {
-            return try db.pluck(SubitemTable.table.select(SubitemTable.uri).filter(SubitemTable.id == subitemID)).map { $0[SubitemTable.uri] }
+            return try (db?.pluck(SubitemTable.table.select(SubitemTable.uri).filter(SubitemTable.id == subitemID)))?.map { $0[SubitemTable.uri] }
         } catch {
             return nil
         }
@@ -158,7 +158,7 @@ public extension ItemPackage {
     
     public func URIsOfSubitemsWithIDs(_ ids: [Int64]) -> [String] {
         do {
-            return try db.prepare(SubitemTable.table.select(SubitemTable.uri).filter(ids.contains(SubitemTable.id)).order(SubitemTable.position)).map { $0[SubitemTable.uri] }
+            return try (db?.prepare(SubitemTable.table.select(SubitemTable.uri).filter(ids.contains(SubitemTable.id)).order(SubitemTable.position)))?.map { $0[SubitemTable.uri] } ?? []
         } catch {
             return []
         }
@@ -166,7 +166,7 @@ public extension ItemPackage {
     
     public func orderedSubitemURIsWithURIs(_ uris: [String]) -> [String] {
         do {
-            return try db.prepare(SubitemTable.table.select(SubitemTable.uri).filter(uris.contains(SubitemTable.uri)).order(SubitemTable.position)).map { $0[SubitemTable.uri] }
+            return try (db?.prepare(SubitemTable.table.select(SubitemTable.uri).filter(uris.contains(SubitemTable.uri)).order(SubitemTable.position)))?.map { $0[SubitemTable.uri] } ?? []
         } catch {
             return []
         }

@@ -46,7 +46,7 @@ extension ItemPackage {
     // TODO: Do we even still need this?
     public func relatedContentItemsForSubitemWithID(_ subitemID: Int64) -> [RelatedContentItem] {
         do {
-            return try db.prepare(RelatedContentItemTable.table.filter(RelatedContentItemTable.subitemID == subitemID).order(RelatedContentItemTable.byteLocation)).map { RelatedContentItemTable.fromRow($0) }
+            return try (db?.prepare(RelatedContentItemTable.table.filter(RelatedContentItemTable.subitemID == subitemID).order(RelatedContentItemTable.byteLocation)))?.map { RelatedContentItemTable.fromRow($0) } ?? []
         } catch {
             return []
         }
@@ -54,7 +54,7 @@ extension ItemPackage {
     
     public func relatedContentItemsForSubitemWithURI(_ subitemURI: String) -> [RelatedContentItem] {
         do {
-            return try db.prepare(RelatedContentItemTable.table.join(SubitemTable.table.filter(SubitemTable.uri == subitemURI), on: RelatedContentItemTable.subitemID == SubitemTable.id).order(RelatedContentItemTable.byteLocation)).map { RelatedContentItemTable.fromRow($0) }
+            return try (db?.prepare(RelatedContentItemTable.table.join(SubitemTable.table.filter(SubitemTable.uri == subitemURI), on: RelatedContentItemTable.subitemID == SubitemTable.id).order(RelatedContentItemTable.byteLocation)))?.map { RelatedContentItemTable.fromRow($0) } ?? []
         } catch {
             return []
         }
