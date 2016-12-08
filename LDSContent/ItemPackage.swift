@@ -70,6 +70,10 @@ public class ItemPackage {
         }
     }
     
+    public var databaseExists: Bool {
+        return FileManager.default.fileExists(atPath: url.appendingPathComponent("package.sqlite").path)
+    }
+    
     public var schemaVersion: Int {
         return Int(self.intForMetadataKey("schemaVersion") ?? 0)
     }
