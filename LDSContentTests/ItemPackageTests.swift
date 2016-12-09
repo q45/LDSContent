@@ -76,6 +76,10 @@ class ItemPackageTests: XCTestCase {
         XCTAssertEqual(subitemSearchResults, searchResults.filter { $0.subitemID == subitemID })
     }
     
+    func testNoCrashOnInvalidSearch() {
+        _ = itemPackage.searchResultsForString("life\"s problems")
+    }
+    
     func testSubitem() {
         let uri = "/scriptures/bofm/1-ne/1"
         let subitem = itemPackage.subitemWithURI(uri)!

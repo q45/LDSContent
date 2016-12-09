@@ -227,11 +227,16 @@ extension ItemPackage {
 
     public func searchResultsForString(_ searchString: String, subitemID: Int64? = nil) -> [SearchResult] {
         let iso639_3Code = self.iso639_3Code!
-        let keywordSearch = (searchString.range(of: "^\\\".*\\\"$", options: .regularExpression) == nil)
+        let keywordSearch = !(searchString.hasPrefix("\"") && searchString.hasSuffix("\""))
+        // Stray quotes cause a crash when doing the query
+        var modifiedSearchString = searchString.replacingOccurrences(of: "\"", with: "")
+        if keywordSearch {
+            modifiedSearchString = "\"\(modifiedSearchString)\""
+        }
         
         do {
             var subStatement = ""
-            var bindings: [String: Binding?] = ["@searchString": searchString]
+            var bindings: [String: Binding?] = ["@searchString": modifiedSearchString]
             if let subitemID = subitemID {
                 subStatement = "AND subitem._id = @subitemID"
                 bindings["@subitemID"] = subitemID
