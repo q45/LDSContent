@@ -76,6 +76,11 @@ class ItemPackageTests: XCTestCase {
         XCTAssertEqual(subitemSearchResults, searchResults.filter { $0.subitemID == subitemID })
     }
     
+    func testExactPhraseResults() {
+        let searchResults = itemPackage.searchResultsForString("\"I nephi having been born\"")
+        XCTAssertEqual(searchResults.count, 1)
+    }
+    
     func testNoCrashOnInvalidSearch() {
         _ = itemPackage.searchResultsForString("life\"s problems")
     }

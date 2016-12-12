@@ -230,7 +230,7 @@ extension ItemPackage {
         let keywordSearch = !(searchString.hasPrefix("\"") && searchString.hasSuffix("\""))
         // Stray quotes cause a crash when doing the query
         var modifiedSearchString = searchString.replacingOccurrences(of: "\"", with: "")
-        if keywordSearch {
+        if !keywordSearch {
             modifiedSearchString = "\"\(modifiedSearchString)\""
         }
         
