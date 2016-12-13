@@ -66,17 +66,17 @@ public extension ItemPackage {
         }
     }
     
-    public func relatedAudioItemsForSubitemsWithIDs(_ subitemIDs: [Int64]) -> [RelatedAudioItem] {
+    public func relatedAudioItemsForSubitems(withIDs subitemIDs: [Int64], voice: RelatedAudioVoice) -> [RelatedAudioItem] {
         do {
-            return try db?.prepare(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID))).flatMap { RelatedAudioItemTable.fromRow($0) } ?? []
+            return try db?.prepare(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID)).filter(RelatedAudioItemTable.voice == voice || RelatedAudioItemTable.voice == nil)).flatMap { RelatedAudioItemTable.fromRow($0) } ?? []
         } catch {
             return []
         }
     }
     
-    public func hasRelatedAudioItemsForSubitemsWithIDs(_ subitemIDs: [Int64]) -> Bool {
+    public func hasRelatedAudioItemsForSubitems(withIDs subitemIDs: [Int64], voice: RelatedAudioVoice) -> Bool {
         do {
-            return try db?.scalar(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID)).count) ?? 0 > 0
+            return try db?.scalar(RelatedAudioItemTable.table.filter(subitemIDs.contains(RelatedAudioItemTable.subitemID)).filter(RelatedAudioItemTable.voice == voice || RelatedAudioItemTable.voice == nil).count) ?? 0 > 0
         } catch {
             return false
         }
@@ -101,14 +101,14 @@ public extension ItemPackage {
         return Array(subitemIDs)
     }
     
-    func relatedAudioItemsInNavCollection(_ collection: NavCollection) -> [RelatedAudioItem] {
+    func relatedAudioItems(inNavCollection collection: NavCollection, voice: RelatedAudioVoice) -> [RelatedAudioItem] {
         let subitemIDs = subitemIDsForDescendantsOfNavNode(collection)
-        return relatedAudioItemsForSubitemsWithIDs(subitemIDs)
+        return relatedAudioItemsForSubitems(withIDs: subitemIDs, voice: voice)
     }
     
-    func relatedAudioAvailableInNavCollection(_ collection: NavCollection) -> Bool {
+    func relatedAudioAvailable(inNavCollection collection: NavCollection, voice: RelatedAudioVoice) -> Bool {
         let subitemIDs = subitemIDsForDescendantsOfNavNode(collection)
-        return hasRelatedAudioItemsForSubitemsWithIDs(subitemIDs)
+        return hasRelatedAudioItemsForSubitems(withIDs: subitemIDs, voice: voice)
     }
     
 }
