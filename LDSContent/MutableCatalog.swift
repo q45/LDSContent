@@ -73,9 +73,9 @@ extension MutableCatalog {
     func setInt(_ integerValue: Int?, forMetadataKey key: String) {
         do {
             if let integerValue = integerValue {
-                try db.run(MetadataTable.table.insert(or: .replace, MetadataTable.key <- key, MetadataTable.integerValue <- integerValue))
+                _ = try db.run(MetadataTable.table.insert(or: .replace, MetadataTable.key <- key, MetadataTable.integerValue <- integerValue))
             } else {
-                try db.run(MetadataTable.table.filter(MetadataTable.key == key).delete())
+                _ = try db.run(MetadataTable.table.filter(MetadataTable.key == key).delete())
             }
         } catch {}
     }
@@ -83,9 +83,9 @@ extension MutableCatalog {
     func setString(_ stringValue: String?, forMetadataKey key: String) {
         do {
             if let stringValue = stringValue {
-                try db.run(MetadataTable.table.insert(or: .replace, MetadataTable.key <- key, MetadataTable.stringValue <- stringValue))
+                _ = try db.run(MetadataTable.table.insert(or: .replace, MetadataTable.key <- key, MetadataTable.stringValue <- stringValue))
             } else {
-                try db.run(MetadataTable.table.filter(MetadataTable.key == key).delete())
+                _ = try db.run(MetadataTable.table.filter(MetadataTable.key == key).delete())
             }
         } catch {}
     }
@@ -95,7 +95,7 @@ extension MutableCatalog {
 extension MutableCatalog {
 
     public func addOrUpdateSource(_ source: Source) throws {
-        try db.run(SourceTable.table.insert(or: .replace,
+        _ = try db.run(SourceTable.table.insert(or: .replace,
             SourceTable.id <- source.id,
             SourceTable.name <- source.name,
             SourceTable.typeID <- source.type.rawValue
@@ -103,14 +103,14 @@ extension MutableCatalog {
     }
     
     public func addOrUpdateItemCategory(_ itemCategory: ItemCategory) throws {
-        try db.run(ItemCategoryTable.table.insert(or: .replace,
+        _ = try db.run(ItemCategoryTable.table.insert(or: .replace,
             ItemCategoryTable.id <- itemCategory.id,
             ItemCategoryTable.name <- itemCategory.name
         ))
     }
     
     public func addOrUpdateItem(_ item: Item) throws {
-        try db.run(ItemTable.table.insert(or: .replace,
+        _ = try db.run(ItemTable.table.insert(or: .replace,
             ItemTable.id <- item.id,
             ItemTable.externalID <- item.externalID,
             ItemTable.languageID <- item.languageID,
@@ -126,7 +126,7 @@ extension MutableCatalog {
     }
     
     public func addOrUpdateLanguage(_ language: Language) throws {
-        try db.run(LanguageTable.table.insert(or: .replace,
+        _ = try db.run(LanguageTable.table.insert(or: .replace,
             LanguageTable.id <- language.id,
             LanguageTable.ldsLanguageCode <- language.ldsLanguageCode,
             LanguageTable.iso639_3Code <- language.iso639_3Code,
@@ -137,7 +137,7 @@ extension MutableCatalog {
     }
     
     public func setName(_ name: String, forLanguageWithID languageID: Int64, inLanguageWithID localizationLanguageID: Int64) throws {
-        try db.run(LanguageNameTable.table.insert(
+        _ = try db.run(LanguageNameTable.table.insert(
             LanguageNameTable.languageID <- languageID,
             LanguageNameTable.localizationLanguageID <- localizationLanguageID,
             LanguageNameTable.name <- name
@@ -145,7 +145,7 @@ extension MutableCatalog {
     }
     
     public func addOrUpdateLibraryCollection(_ libraryCollection: LibraryCollection) throws {
-        try db.run(LibraryCollectionTable.table.insert(or: .replace,
+        _ = try db.run(LibraryCollectionTable.table.insert(or: .replace,
             LibraryCollectionTable.id <- libraryCollection.id,
             LibraryCollectionTable.externalID <- libraryCollection.externalID,
             LibraryCollectionTable.librarySectionID <- libraryCollection.librarySectionID,
@@ -158,7 +158,7 @@ extension MutableCatalog {
     }
     
     public func addOrUpdateLibrarySection(_ librarySection: LibrarySection) throws {
-        try db.run(LibrarySectionTable.table.insert(or: .replace,
+        _ = try db.run(LibrarySectionTable.table.insert(or: .replace,
             LibrarySectionTable.id <- librarySection.id,
             LibrarySectionTable.externalID <- librarySection.externalID,
             LibrarySectionTable.libraryCollectionID <- librarySection.libraryCollectionID,
@@ -170,7 +170,7 @@ extension MutableCatalog {
     }
     
     public func addOrUpdateLibraryItem(_ libraryItem: LibraryItem) throws {
-        try db.run(LibraryItemTable.table.insert(or: .replace,
+        _ = try db.run(LibraryItemTable.table.insert(or: .replace,
             LibraryItemTable.id <- libraryItem.id,
             LibraryItemTable.externalID <- libraryItem.externalID,
             LibraryItemTable.librarySectionID <- libraryItem.librarySectionID,
@@ -184,15 +184,14 @@ extension MutableCatalog {
     }
     
     public func addStopword(_ stopword: Stopword) throws {
-        try db.run(StopwordTable.table.insert(
+        _ = try db.run(StopwordTable.table.insert(
             StopwordTable.languageID <- stopword.languageID,
             StopwordTable.word <- stopword.word
         ))
     }
     
-    public func addSubitemMetadata(id: Int64, subitemID: Int64, itemID: Int64, docID: String, docVersion: Int) throws {
-        try db.run(SubitemMetadataTable.table.insert(
-            SubitemMetadataTable.id <- id,
+    public func addSubitemMetadata(subitemID: Int64, itemID: Int64, docID: String, docVersion: Int) throws {
+        _ = try db.run(SubitemMetadataTable.table.insert(
             SubitemMetadataTable.subitemID <- subitemID,
             SubitemMetadataTable.itemID <- itemID,
             SubitemMetadataTable.docID <- docID,

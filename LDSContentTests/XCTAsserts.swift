@@ -24,7 +24,7 @@ import XCTest
 
 func XCTAssertNoThrow<T>(_ expression: @autoclosure () throws -> T, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
     do {
-        try expression()
+        _ = try expression()
     } catch let error {
         XCTFail("Caught error: \(error) - \(message)", file: file, line: line)
     }

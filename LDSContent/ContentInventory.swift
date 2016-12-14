@@ -140,7 +140,7 @@ extension ContentInventory {
     }
     
     func setSchemaVersion(_ schemaVersion: Int, itemPackageVersion: Int, forItemWithID itemID: Int64) throws {
-        try db.run(InstalledItemTable.table.insert(or: .replace,
+        _ = try db.run(InstalledItemTable.table.insert(or: .replace,
             InstalledItemTable.itemID <- itemID,
             InstalledItemTable.schemaVersion <- schemaVersion,
             InstalledItemTable.itemPackageVersion <- itemPackageVersion
@@ -148,7 +148,7 @@ extension ContentInventory {
     }
     
     func removeVersionForItemWithID(_ itemID: Int64) throws {
-        try db.run(InstalledItemTable.table.filter(InstalledItemTable.itemID == itemID).delete())
+        _ = try db.run(InstalledItemTable.table.filter(InstalledItemTable.itemID == itemID).delete())
     }
 
 }
@@ -171,11 +171,11 @@ extension ContentInventory {
     }
     
     func addToInstallQueue(itemID: Int64) throws {
-        try db.run(InstallQueueTable.table.insert(or: .replace, InstallQueueTable.itemID <- itemID))
+        _ = try db.run(InstallQueueTable.table.insert(or: .replace, InstallQueueTable.itemID <- itemID))
     }
     
     func removeFromInstallQueue(itemID: Int64) throws {
-        try db.run(InstallQueueTable.table.filter(InstallQueueTable.itemID == itemID).delete())
+        _ = try db.run(InstallQueueTable.table.filter(InstallQueueTable.itemID == itemID).delete())
     }
     
 }
@@ -199,9 +199,9 @@ extension ContentInventory {
     
     func setErrored(_ errored: Bool, itemID: Int64) throws {
         if errored {
-            try db.run(ErroredInstallTable.table.insert(or: .replace, ErroredInstallTable.itemID <- itemID))
+            _ = try db.run(ErroredInstallTable.table.insert(or: .replace, ErroredInstallTable.itemID <- itemID))
         } else {
-            try db.run(ErroredInstallTable.table.filter(ErroredInstallTable.itemID == itemID).delete())
+            _ = try db.run(ErroredInstallTable.table.filter(ErroredInstallTable.itemID == itemID).delete())
         }
         
     }
@@ -224,11 +224,11 @@ extension ContentInventory {
     }
     
     func addOrUpdateCatalog(_ name: String, url: String?, version: Int) throws {
-        try db.run(InstalledCatalogTable.table.insert(or: .replace, InstalledCatalogTable.name <- name, InstalledCatalogTable.url <- url, InstalledCatalogTable.version <- version))
+        _ = try db.run(InstalledCatalogTable.table.insert(or: .replace, InstalledCatalogTable.name <- name, InstalledCatalogTable.url <- url, InstalledCatalogTable.version <- version))
     }
     
     func deleteCatalogsNamed(_ names: [String]) throws {
-        try db.run(InstalledCatalogTable.table.filter(names.contains(InstalledCatalogTable.name)).delete())
+        _ = try db.run(InstalledCatalogTable.table.filter(names.contains(InstalledCatalogTable.name)).delete())
     }
     
     func installedCatalogs() -> [CatalogMetadata] {

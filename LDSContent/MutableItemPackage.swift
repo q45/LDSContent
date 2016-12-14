@@ -115,9 +115,9 @@ extension MutableItemPackage {
     func setInt(_ integerValue: Int64?, forMetadataKey key: String) {
         do {
             if let integerValue = integerValue {
-                try db?.run(MetadataTable.table.insert(or: .replace, MetadataTable.key <- key, MetadataTable.integerValue <- integerValue))
+                _ = try db?.run(MetadataTable.table.insert(or: .replace, MetadataTable.key <- key, MetadataTable.integerValue <- integerValue))
             } else {
-                try db?.run(MetadataTable.table.filter(MetadataTable.key == key).delete())
+                _ = try db?.run(MetadataTable.table.filter(MetadataTable.key == key).delete())
             }
         } catch {}
     }
@@ -125,9 +125,9 @@ extension MutableItemPackage {
     func setString(_ stringValue: String?, forMetadataKey key: String) {
         do {
             if let stringValue = stringValue {
-                try db?.run(MetadataTable.table.insert(or: .replace, MetadataTable.key <- key, MetadataTable.stringValue <- stringValue))
+                _ = try db?.run(MetadataTable.table.insert(or: .replace, MetadataTable.key <- key, MetadataTable.stringValue <- stringValue))
             } else {
-                try db?.run(MetadataTable.table.filter(MetadataTable.key == key).delete())
+                _ = try db?.run(MetadataTable.table.filter(MetadataTable.key == key).delete())
             }
         } catch {}
     }
@@ -263,7 +263,7 @@ extension MutableItemPackage {
     }
     
     public func addParagraphMetadata(paragraphID: String, paragraphAID: String, subitemID: Int64, verseNumber: String?, range: NSRange) throws {
-        try db?.run(ParagraphMetadataTable.table.insert(
+        _ = try db?.run(ParagraphMetadataTable.table.insert(
             ParagraphMetadataTable.subitemID <- subitemID,
             ParagraphMetadataTable.paragraphID <- paragraphID,
             ParagraphMetadataTable.paragraphAID <- paragraphAID,
@@ -311,7 +311,7 @@ extension MutableItemPackage {
     }
     
     public func addSubitemAuthor(subitem: Subitem, author: Author) throws {
-        try db?.run(SubitemAuthorTable.table.insert(or: .ignore,
+        _ = try db?.run(SubitemAuthorTable.table.insert(or: .ignore,
             SubitemAuthorTable.subitemID <- subitem.id,
             SubitemAuthorTable.authorID <- author.id
         ))
@@ -330,7 +330,7 @@ extension MutableItemPackage {
     }
     
     public func addSubitemTopic(_ subitem: Subitem, topic: Topic) throws {
-        try db?.run(SubitemTopicTable.table.insert(or: .ignore,
+        _ = try db?.run(SubitemTopicTable.table.insert(or: .ignore,
             SubitemTopicTable.subitemID <- subitem.id,
             SubitemTopicTable.topicID <- topic.id
         ))
