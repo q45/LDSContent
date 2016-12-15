@@ -184,14 +184,14 @@ extension MutableCatalog {
     }
     
     public func addStopword(_ stopword: Stopword) throws {
-        _ = try db.run(StopwordTable.table.insert(
+        _ = try db.run(StopwordTable.table.insert(or: .ignore,
             StopwordTable.languageID <- stopword.languageID,
             StopwordTable.word <- stopword.word
         ))
     }
     
     public func addSubitemMetadata(subitemID: Int64, itemID: Int64, docID: String, docVersion: Int) throws {
-        _ = try db.run(SubitemMetadataTable.table.insert(
+        _ = try db.run(SubitemMetadataTable.table.insert(or: .ignore,
             SubitemMetadataTable.subitemID <- subitemID,
             SubitemMetadataTable.itemID <- itemID,
             SubitemMetadataTable.docID <- docID,

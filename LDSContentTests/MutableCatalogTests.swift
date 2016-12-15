@@ -126,6 +126,20 @@ class MutableCatalogTests: XCTestCase {
         XCTAssertEqual(catalog.versionsForDocIDs(["3"]), ["3": 4])
     }
     
+    func testSubitemMetadataIgnore() {
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
+        
+        let itemAndSubitemID = catalog.itemAndSubitemIDForDocID("3")!
+        XCTAssertEqual(itemAndSubitemID.itemID, 2)
+        XCTAssertEqual(itemAndSubitemID.subitemID, 1)
+        XCTAssertEqual(catalog.subitemIDForSubitemWithDocID("3", itemID: 2), 1)
+        XCTAssertEqual(catalog.docIDForSubitemWithID(1, itemID: 2), "3")
+        XCTAssertEqual(catalog.versionsForDocIDs(["3"]), ["3": 4])
+    }
+    
     override func setUp() {
         super.setUp()
         
