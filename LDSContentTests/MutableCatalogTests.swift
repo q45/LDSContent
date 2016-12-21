@@ -116,7 +116,7 @@ class MutableCatalogTests: XCTestCase {
     }
     
     func testSubitems() {
-        XCTAssertNoThrow(try catalog.addSubitemMetadata(subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(id: 1, subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
         
         let itemAndSubitemID = catalog.itemAndSubitemIDForDocID("3")!
         XCTAssertEqual(itemAndSubitemID.itemID, 2)
@@ -127,10 +127,10 @@ class MutableCatalogTests: XCTestCase {
     }
     
     func testSubitemMetadataIgnore() {
-        XCTAssertNoThrow(try catalog.addSubitemMetadata(subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
-        XCTAssertNoThrow(try catalog.addSubitemMetadata(subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
-        XCTAssertNoThrow(try catalog.addSubitemMetadata(subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
-        XCTAssertNoThrow(try catalog.addSubitemMetadata(subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(id: 1, subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(id: 1, subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(id: 1, subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(id: 1, subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
         
         let itemAndSubitemID = catalog.itemAndSubitemIDForDocID("3")!
         XCTAssertEqual(itemAndSubitemID.itemID, 2)
@@ -138,6 +138,15 @@ class MutableCatalogTests: XCTestCase {
         XCTAssertEqual(catalog.subitemIDForSubitemWithDocID("3", itemID: 2), 1)
         XCTAssertEqual(catalog.docIDForSubitemWithID(1, itemID: 2), "3")
         XCTAssertEqual(catalog.versionsForDocIDs(["3"]), ["3": 4])
+    }
+    
+    func testMaxSubitemMetadataID() {
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(id: 1, subitemID: 1, itemID: 2, docID: "3", docVersion: 4))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(id: 2, subitemID: 2, itemID: 4, docID: "4", docVersion: 5))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(id: 3, subitemID: 3, itemID: 5, docID: "5", docVersion: 6))
+        XCTAssertNoThrow(try catalog.addSubitemMetadata(id: 4, subitemID: 4, itemID: 6, docID: "6", docVersion: 7))
+        
+        XCTAssertEqual(catalog.maxSubitemMetadataID(), 4)
     }
     
     override func setUp() {

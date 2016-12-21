@@ -63,4 +63,12 @@ public extension Catalog {
         }
     }
     
+    public func maxSubitemMetadataID() -> Int64? {
+        do {
+            return try db.scalar(SubitemMetadataTable.table.select(SubitemMetadataTable.id.max))
+        } catch {
+            return 0
+        }
+    }
+    
 }

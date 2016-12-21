@@ -190,8 +190,9 @@ extension MutableCatalog {
         ))
     }
     
-    public func addSubitemMetadata(subitemID: Int64, itemID: Int64, docID: String, docVersion: Int) throws {
+    public func addSubitemMetadata(id: Int64, subitemID: Int64, itemID: Int64, docID: String, docVersion: Int) throws {
         _ = try db.run(SubitemMetadataTable.table.insert(or: .ignore,
+            SubitemMetadataTable.id <- id,
             SubitemMetadataTable.subitemID <- subitemID,
             SubitemMetadataTable.itemID <- itemID,
             SubitemMetadataTable.docID <- docID,
