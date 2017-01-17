@@ -32,6 +32,9 @@ public enum ContentType: Int64 {
     /// LDS Music content type
     case music = 2
     
+    /// General Conference session content type
+    case conferenceSession = 3
+    
 }
 
 extension ContentType: Value {
